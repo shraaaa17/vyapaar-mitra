@@ -1,0 +1,226 @@
+@import 'tailwindcss';
+
+/*
+ * Vyapaar Mitra design tokens.
+ * Brand: Paytm-inspired deep blue + capri cyan on white and a very light cloud tint.
+ * Every other tint is derived from those two hues so no unrelated colour dominates.
+ */
+@theme {
+  /* Brand */
+  --color-paytm-blue: #002e6e;
+  --color-paytm-blue-800: #0a3a80;
+  --color-paytm-blue-600: #1d5aa8;
+  --color-paytm-cyan: #00b9f1;
+  --color-paytm-cyan-600: #0096c7;
+  --color-paytm-cyan-300: #7fdcf8;
+
+  /* Surfaces */
+  --color-cloud: #f4faff;
+  --color-mist: #e8f4fd;
+  --color-frost: #d6ecfa;
+  --color-sky-wash: #e3f7fe;
+
+  /* Text */
+  --color-ink: #002e6e;
+  --color-slate: #425466;
+  --color-slate-soft: #6b7c8f;
+
+  /* Status: used sparingly for outcomes and risk, never as a dominant colour */
+  --color-success: #0f9d6b;
+  --color-success-wash: #e3f7ef;
+  --color-caution: #b26a00;
+  --color-caution-wash: #fff4e0;
+
+  /* Type */
+  --font-sans: 'Poppins', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --text-hero: clamp(42px, 6vw, 76px);
+  --text-hero--line-height: 1.04;
+  --text-hero--letter-spacing: -0.035em;
+  --text-hero--font-weight: 800;
+
+  --text-section: clamp(32px, 4.2vw, 56px);
+  --text-section--line-height: 1.1;
+  --text-section--letter-spacing: -0.03em;
+  --text-section--font-weight: 700;
+
+  --text-card: clamp(20px, 1.6vw, 26px);
+  --text-card--line-height: 1.25;
+  --text-card--letter-spacing: -0.015em;
+  --text-card--font-weight: 600;
+
+  --text-body-lg: 18px;
+  --text-body-lg--line-height: 1.7;
+  --text-body: 16px;
+  --text-body--line-height: 1.65;
+
+  --text-eyebrow: 12px;
+  --text-eyebrow--line-height: 1.4;
+  --text-eyebrow--letter-spacing: 0.18em;
+  --text-eyebrow--font-weight: 600;
+
+  /* Radii */
+  --radius-clay-sm: 18px;
+  --radius-clay: 24px;
+  --radius-clay-lg: 32px;
+  --radius-clay-xl: 40px;
+
+  /* Motion */
+  --ease-clay: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-float: float 6s var(--ease-soft) infinite;
+  --animate-float-slow: float 9s var(--ease-soft) infinite;
+  --animate-orb-pulse: orb-pulse 3.2s ease-in-out infinite;
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  @keyframes orb-pulse {
+    0%,
+    100% {
+      transform: scale(1);
+      opacity: 0.55;
+    }
+    50% {
+      transform: scale(1.35);
+      opacity: 0;
+    }
+  }
+}
+
+/*
+ * Clay shadow recipes. Kept as variables so utilities, components and one-off
+ * elements share the same depth language instead of copying long shadow strings.
+ */
+:root {
+  --clay-shadow-raised:
+    12px 14px 32px rgb(0 46 110 / 0.1), 2px 3px 8px rgb(0 46 110 / 0.05),
+    inset 7px 7px 12px rgb(255 255 255 / 0.9), inset -7px -7px 14px rgb(0 46 110 / 0.07);
+  --clay-shadow-soft:
+    6px 8px 18px rgb(0 46 110 / 0.08), inset 4px 4px 8px rgb(255 255 255 / 0.9),
+    inset -4px -4px 9px rgb(0 46 110 / 0.06);
+  --clay-shadow-hover:
+    16px 22px 40px rgb(0 46 110 / 0.13), 2px 4px 10px rgb(0 46 110 / 0.06),
+    inset 7px 7px 12px rgb(255 255 255 / 0.9), inset -7px -7px 14px rgb(0 46 110 / 0.07);
+  --clay-shadow-inset:
+    inset 5px 5px 12px rgb(0 46 110 / 0.1), inset -5px -5px 12px rgb(255 255 255 / 0.95);
+  --clay-shadow-blue:
+    10px 14px 28px rgb(0 46 110 / 0.3), inset 4px 4px 10px rgb(255 255 255 / 0.18),
+    inset -5px -6px 12px rgb(0 10 40 / 0.35);
+  --clay-shadow-cyan:
+    10px 14px 28px rgb(0 150 199 / 0.28), inset 4px 4px 10px rgb(255 255 255 / 0.4),
+    inset -5px -6px 12px rgb(0 70 130 / 0.22);
+
+  color-scheme: light;
+}
+
+@utility clay-card {
+  border-radius: var(--radius-clay-lg);
+  background-color: var(--color-white);
+  box-shadow: var(--clay-shadow-raised);
+}
+
+@utility clay-soft {
+  border-radius: var(--radius-clay);
+  background-color: var(--color-white);
+  box-shadow: var(--clay-shadow-soft);
+}
+
+@utility clay-inset {
+  border-radius: var(--radius-clay);
+  background-color: var(--color-cloud);
+  box-shadow: var(--clay-shadow-inset);
+}
+
+@utility clay-blue {
+  border-radius: var(--radius-clay-lg);
+  background-color: var(--color-paytm-blue);
+  box-shadow: var(--clay-shadow-blue);
+}
+
+@utility clay-button {
+  border-radius: 999px;
+  transition:
+    transform 180ms var(--ease-clay),
+    box-shadow 220ms var(--ease-soft),
+    background-color 200ms var(--ease-soft);
+  &:hover {
+    transform: translateY(-2px);
+  }
+  &:active {
+    transform: translateY(2px) scale(0.97);
+  }
+}
+
+@utility clay-lift {
+  transition:
+    transform 260ms var(--ease-soft),
+    box-shadow 260ms var(--ease-soft);
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--clay-shadow-hover);
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    min-height: 100dvh;
+    background-color: var(--color-cloud);
+    color: var(--color-slate);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    color: var(--color-ink);
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-paytm-cyan);
+    outline-offset: 3px;
+    border-radius: 12px;
+  }
+
+  ::selection {
+    background: var(--color-paytm-cyan-300);
+    color: var(--color-paytm-blue);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}

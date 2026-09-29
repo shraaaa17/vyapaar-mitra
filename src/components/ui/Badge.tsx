@@ -1,0 +1,38 @@
+import type { ReactNode } from 'react'
+import { cn } from '../../lib/cn'
+
+type Tone = 'cyan' | 'blue' | 'neutral' | 'success' | 'caution'
+
+const toneClasses: Record<Tone, string> = {
+  cyan: 'bg-sky-wash text-paytm-cyan-600',
+  blue: 'bg-paytm-blue text-white',
+  neutral: 'bg-mist text-paytm-blue',
+  success: 'bg-success-wash text-success',
+  caution: 'bg-caution-wash text-caution',
+}
+
+/** Compact status label. Use sparingly; the spec warns against overusing pills. */
+export function Badge({
+  children,
+  tone = 'neutral',
+  icon,
+  className,
+}: {
+  children: ReactNode
+  tone?: Tone
+  icon?: ReactNode
+  className?: string
+}) {
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1 text-[11px] font-semibold tracking-[0.08em] uppercase',
+        toneClasses[tone],
+        className,
+      )}
+    >
+      {icon && <span aria-hidden className="inline-flex [&_svg]:size-3.5">{icon}</span>}
+      {children}
+    </span>
+  )
+}
