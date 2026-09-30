@@ -35,9 +35,30 @@ The tokens live in `src/index.css`, inside the `@theme` block.
 - **Type scale utilities:** `text-hero`, `text-section`, `text-card`, `text-body-lg`, `text-body`, `text-eyebrow`
 - **Clay utilities:** `clay-card` (raised), `clay-soft`, `clay-inset`, `clay-blue`, `clay-button` (hover lift / press squash) and `clay-lift` (hover lift for cards). The shadow recipes are defined once as `--clay-shadow-*` variables.
 
-The primitives live in `src/components/ui/`: `ClayButton`, `ClayCard`, `ClaySwitch`, `FloatingOrb`, `IconBubble`, `Badge`, `RiskBadge`, `MetricCard`, `InsightCard`, `SectionHeading`, `Container` and `Logo`.
+The primitives live in `src/components/ui/`: `ClayButton`, `ClayCard`, `ClaySwitch`, `FloatingOrb`, `IconBubble`, `Badge`, `RiskBadge`, `MetricCard`, `InsightCard`, `SectionHeading`, `Container`, `Logo`, `OtpInput` and `SegmentedChoice`.
 
 An internal reference page for the design system lives at `/design-system`.
+
+## Illustrations
+
+One clay mascot, **Mitra**, appears across the app, with a supporting merchant character on onboarding. Every picture is a transparent WebP under 60 KB in `public/illustrations/`, drawn through one component:
+
+```tsx
+<Illustration name="mitra-empty" alt="" />      // lazy-loaded
+<Illustration name="mitra-celebrate" hero />    // hero: loads eagerly and floats gently
+```
+
+The full list, with sizes and where each one is used, is in `src/components/illustrations/manifest.ts`. Entries marked `placeholder: true` are stand-ins. **To swap in final art, drop a WebP with the same file name into `public/illustrations/`** (keep a similar aspect ratio, or update the size in the manifest). No code change is needed.
+
+- Mitra's hero wave is two layers (`mitra-wave-body` + `mitra-wave-hand`, same canvas) so the arm can rotate about the elbow. If only `mitra-wave` is replaced, delete the two layer files and the hero falls back to the single image.
+- Blinks are drawn over the art in code (`Eyelids.tsx`), aligned to the current eye positions. New art needs new eye coordinates in `MitraHero.tsx` / `MerchantPayment.tsx`.
+- Only hero illustrations float. Everything animated respects `prefers-reduced-motion`.
+- No clay imagery on loan terms, data tables or charts.
+- Source art and the scripts that made the cut-outs and placeholders are in `design/characters/` and `design/illustrations/`.
+
+## Languages
+
+Hinglish is the default, with English, Hindi and Marathi. Strings live in `src/i18n/locales/`; `en.ts` is the source and the other three must have exactly the same keys (TypeScript enforces this). The language picker changes the whole UI, `<html lang>`, and the read-aloud voice.
 
 ## App structure
 
@@ -47,10 +68,17 @@ src/
   components/
     ui/             clay primitives
     layout/         AppShell, Sidebar (≥768px), BottomTabs + MoreSheet (<768px), route guards
+    auth/           sign-in frame with Mitra
+    trust/          Trust Settings panels (onboarding and Settings share them)
+    language/       language picker and header language switch
+    illustrations/  <Illustration>, the animated Mitra hero, manifest of every picture
+  i18n/             i18next setup, language list, locales (en, hinglish, hi, mr)
   mocks/            types.ts (API contract), seed.ts (Ramesh story), server.ts (mock routes)
   lib/api.ts        typed API client (mock or real backend)
+  lib/trust.ts      trust defaults and limits shared by the UI and the mock
+  lib/speech.ts     read-aloud (Web Speech API) in the chosen language
   hooks/queries.ts  TanStack Query hooks and mutations
-  store/            Zustand: session + preferences (persisted), shell UI state
+  store/            Zustand: session + preferences (persisted), onboarding draft, shell UI state
 ```
 
 ## API
@@ -69,10 +97,12 @@ With no `VITE_API_BASE_URL` set, every request is served in the browser by `src/
 
 The mock also serves these helpers, which are **not** in the documented backend API: `GET /agent/settings/trust`, `GET /agent/campaigns`, `GET /agent/regulars` and `GET /merchant/profile`.
 
+Sign-in is mocked too: `POST /auth/otp` (`{ phone }`) and `POST /auth/verify` (`{ phone, otp }`). Any 10-digit mobile number starting with 6–9 works, and any 6-digit OTP except `000000` (which returns a wrong-OTP error, to show that state).
+
 ## Build phases
 
 1. ✅ Setup, design tokens, responsive shell, routing, store, mock API + seed data
-2. Login, onboarding, Trust Settings, i18n
+2. ✅ Login, onboarding, Trust Settings, i18n
 3. Home briefing, insight cards, read-aloud
 4. Action Center, Why panel, approve/undo
 5. Campaigns + Regulars
