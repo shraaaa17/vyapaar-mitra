@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '../../lib/cn'
 import { Eyelids, type Eye } from './Eyelids'
+import { idleRepeats } from './idle'
 import { illustrationUrl } from './manifest'
 
 /*
@@ -43,7 +44,7 @@ export function MitraHero({ className }: { className?: string }) {
         className="absolute -bottom-[1.5%] left-1/2 h-[4.5%] w-[58%] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgb(0_46_110/0.3),rgb(0_46_110/0))]"
         initial={reduce ? false : { opacity: 0 }}
         animate={reduce ? undefined : { opacity: 1, scaleX: [1, 0.9, 1] }}
-        transition={{ opacity: { duration: 0.6, delay: 0.3 }, scaleX: { duration: 5, repeat: Infinity, ease: 'easeInOut' } }}
+        transition={{ opacity: { duration: 0.6, delay: 0.3 }, scaleX: { duration: 5, repeat: idleRepeats(5), ease: 'easeInOut' } }}
       />
 
       {/* Entrance: rises in and settles with a bounce */}
@@ -59,7 +60,7 @@ export function MitraHero({ className }: { className?: string }) {
         <motion.div
           className="absolute inset-0"
           animate={reduce ? undefined : { y: [0, -10, 0] }}
-          transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+          transition={{ duration: 5, repeat: idleRepeats(5), ease: 'easeInOut' }}
         >
           {layered ? (
             <>
@@ -76,7 +77,8 @@ export function MitraHero({ className }: { className?: string }) {
                   duration: 1.9,
                   ease: 'easeInOut',
                   delay: waves === 0 ? 0.9 : 0,
-                  repeat: Infinity,
+                  // Three waves on arrival; a tap waves once more.
+                  repeat: waves === 0 ? 2 : 0,
                   repeatDelay: 3.4,
                 }}
               />

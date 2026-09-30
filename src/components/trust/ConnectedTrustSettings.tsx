@@ -1,7 +1,6 @@
 import { Check, CloudOff, Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { TrustAutosave, TrustSection } from '../../hooks/useTrustAutosave'
-import { RECOMMENDED_TRUST } from '../../lib/trust'
 import { ClayButton, ErrorState, Skeleton } from '../ui'
 import { ResetTrustButton, SafetyLimitsPanel, TrustModesPanel } from './TrustPanels'
 
@@ -14,8 +13,8 @@ export function ConnectedTrustSettings({ trust, section }: { trust: TrustAutosav
   const { t } = useTranslation()
   const { query, value, change, status, lastSection } = trust
 
-  if (query.isError) return <ErrorState onRetry={() => query.refetch()} />
-  if (query.isPending || !value) return <Skeleton className="h-64 rounded-clay" />
+  // Once loaded, a failed refetch (e.g. after a failed save) keeps the controls on screen.
+  if (!value) return query.isError ? <ErrorState onRetry={() => query.refetch()} /> : <Skeleton className="h-64 rounded-clay" />
 
   const Panel = section === 'modes' ? TrustModesPanel : SafetyLimitsPanel
   const shownStatus = lastSection === section ? status : null
@@ -24,7 +23,7 @@ export function ConnectedTrustSettings({ trust, section }: { trust: TrustAutosav
     <div className="flex flex-col gap-4">
       <Panel value={value} onChange={(next) => change(next, section)} columns={2} />
       <div className="flex min-h-12 flex-wrap items-center justify-between gap-3">
-        {section === 'modes' && <ResetTrustButton value={value} onReset={() => change(RECOMMENDED_TRUST, section)} />}
+        <ResetTrustButton value={value} scope={section} onChange={(next) => change(next, section)} />
         <div className="ml-auto flex items-center gap-2 text-sm font-medium">
           {shownStatus === 'saving' && (
             <>

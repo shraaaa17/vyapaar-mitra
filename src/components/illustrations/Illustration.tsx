@@ -1,6 +1,7 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import type { ImgHTMLAttributes } from 'react'
 import { cn } from '../../lib/cn'
+import { idleRepeats } from './idle'
 import { ILLUSTRATIONS, illustrationUrl, type IllustrationName } from './manifest'
 
 export type IllustrationProps = Omit<ImgHTMLAttributes<HTMLImageElement>, 'src' | 'width' | 'height' | 'alt'> & {
@@ -36,7 +37,7 @@ export function Illustration({ name, alt = '', hero = false, className, ...rest 
     <motion.span
       className={cn('inline-block', className)}
       animate={{ y: [0, -8, 0] }}
-      transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+      transition={{ duration: 5, repeat: idleRepeats(5), ease: 'easeInOut' }}
     >
       {img}
     </motion.span>

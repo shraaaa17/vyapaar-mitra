@@ -38,41 +38,44 @@ export function SegmentedChoice<T extends string>({
   return (
     <fieldset className={cn('min-w-0', className)} disabled={disabled} aria-describedby={describedBy}>
       <legend className={cn(hideLegend ? 'sr-only' : 'mb-2 text-sm font-semibold text-paytm-blue')}>{legend}</legend>
-      <div
-        className="clay-inset grid gap-1 rounded-[20px] p-1"
-        style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
-      >
-        {options.map((option) => {
-          const checked = option.value === value
-          return (
-            <label
-              key={option.value}
-              className={cn(
-                'relative flex min-h-12 cursor-pointer items-center justify-center gap-1.5 rounded-2xl px-2 py-2 text-center text-sm leading-tight font-semibold transition-all duration-200',
-                'has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-paytm-blue-600',
-                checked
-                  ? 'bg-paytm-blue text-white [box-shadow:var(--clay-shadow-blue)]'
-                  : 'text-slate hover:bg-white/70 hover:text-paytm-blue',
-                disabled && 'cursor-not-allowed opacity-60',
-              )}
-            >
-              <input
-                type="radio"
-                name={name}
-                value={option.value}
-                checked={checked}
-                onChange={() => onChange(option.value)}
-                className="sr-only"
-              />
-              {option.icon && (
-                <span aria-hidden className="inline-flex shrink-0 [&_svg]:size-4">
-                  {option.icon}
-                </span>
-              )}
-              <span>{option.label}</span>
-            </label>
-          )
-        })}
+      {/* Container query: icons drop out when the control itself is narrow, so labels keep the room. */}
+      <div className="@container">
+        <div
+          className="clay-inset grid gap-1 rounded-[20px] p-1"
+          style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
+        >
+          {options.map((option) => {
+            const checked = option.value === value
+            return (
+              <label
+                key={option.value}
+                className={cn(
+                  'relative flex min-h-12 cursor-pointer items-center justify-center gap-1.5 rounded-2xl px-2 py-2 text-center text-sm leading-tight font-semibold transition-all duration-200',
+                  'has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-paytm-blue-600',
+                  checked
+                    ? 'bg-paytm-blue text-white [box-shadow:var(--clay-shadow-blue)]'
+                    : 'text-slate hover:bg-white/70 hover:text-paytm-blue',
+                  disabled && 'cursor-not-allowed opacity-60',
+                )}
+              >
+                <input
+                  type="radio"
+                  name={name}
+                  value={option.value}
+                  checked={checked}
+                  onChange={() => onChange(option.value)}
+                  className="sr-only"
+                />
+                {option.icon && (
+                  <span aria-hidden className="hidden shrink-0 @sm:inline-flex [&_svg]:size-4">
+                    {option.icon}
+                  </span>
+                )}
+                <span>{option.label}</span>
+              </label>
+            )
+          })}
+        </div>
       </div>
     </fieldset>
   )

@@ -2,9 +2,11 @@ import { useMutation } from '@tanstack/react-query'
 import { ArrowRight, ShieldCheck, Smartphone } from 'lucide-react'
 import { useId, useRef, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useNavigationType } from 'react-router-dom'
 import { AuthLayout } from '../components/auth/AuthLayout'
 import { ClayButton, ClayCard } from '../components/ui'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useFocusOnMount } from '../hooks/useFocusOnMount'
 import { api, ApiError } from '../lib/api'
 import { cn } from '../lib/cn'
 import { useSession } from '../store/session'
@@ -22,6 +24,9 @@ function cleanPhone(raw: string) {
 /** Step 1 of sign-in: the merchant's Paytm mobile number. */
 export function Login() {
   const { t } = useTranslation()
+  // After sign-out or "Change number", start at the title (not on first load).
+  const headingRef = useFocusOnMount<HTMLHeadingElement>(useNavigationType() !== 'POP')
+  useDocumentTitle(t('auth.phoneTitle'))
   const navigate = useNavigate()
   const startOtp = useSession((s) => s.startOtp)
   const pending = useSession((s) => s.pendingOtp)
@@ -58,7 +63,9 @@ export function Login() {
     <AuthLayout bubble={t('auth.mitraHello')}>
       <ClayCard padding="lg" className="flex flex-col gap-6">
         <div>
-          <h1 className="text-[26px] leading-tight font-bold tracking-[-0.02em] md:text-[30px]">{t('auth.phoneTitle')}</h1>
+          <h1 ref={headingRef} tabIndex={-1} className="text-[26px] leading-tight font-bold tracking-[-0.02em] outline-none md:text-[30px]">
+            {t('auth.phoneTitle')}
+          </h1>
           <p className="mt-1.5 text-slate">{t('auth.phoneSubtitle')}</p>
         </div>
         <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
@@ -92,7 +99,7 @@ export function Login() {
                 placeholder="98765 43210"
                 aria-invalid={error ? true : undefined}
                 aria-describedby={error ? errorId : undefined}
-                className="h-full min-w-0 flex-1 bg-transparent text-xl font-semibold tracking-wide text-paytm-blue tabular-nums outline-none placeholder:font-medium placeholder:text-slate-soft/70"
+                className="h-full min-w-0 flex-1 bg-transparent text-xl font-semibold tracking-wide text-paytm-blue tabular-nums outline-none placeholder:font-medium placeholder:text-slate-soft"
               />
             </div>
             {error && (

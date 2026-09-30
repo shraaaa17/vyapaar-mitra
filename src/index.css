@@ -227,6 +227,14 @@
     color: var(--color-paytm-blue);
   }
 
+  /* Phones have a fixed bar at the bottom (tabs, or onboarding's Continue):
+     keep whatever gets focus scrolled clear of it. */
+  @media (width < 48rem) {
+    html {
+      scroll-padding-bottom: 7rem;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     html {
       scroll-behavior: auto;

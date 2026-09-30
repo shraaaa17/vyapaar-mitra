@@ -1,7 +1,7 @@
 import { RotateCcw } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { CONTROLLABLE_ACTIONS, RECOMMENDED_TRUST, sameTrust } from '../../lib/trust'
+import { CONTROLLABLE_ACTIONS, RECOMMENDED_TRUST, resetTrust, sameLimits, sameModes, type TrustScope } from '../../lib/trust'
 import type { TrustSettings } from '../../mocks/types'
 import { ClayButton, ClayCard } from '../ui'
 import { LoanLockedCard } from './LoanLockedCard'
@@ -59,12 +59,15 @@ export function SafetyLimitsPanel({ value, onChange, columns = 1 }: PanelProps) 
   )
 }
 
-/** Shown only once something differs from Mitra's suggestion. */
-export function ResetTrustButton({ value, onReset }: { value: TrustSettings; onReset: () => void }) {
+/**
+ * Puts one part (the modes, or the limits) back to Mitra's suggestion, and
+ * leaves the other alone. Shown only once that part differs.
+ */
+export function ResetTrustButton({ value, scope, onChange }: { value: TrustSettings; scope: TrustScope; onChange: (next: TrustSettings) => void }) {
   const { t } = useTranslation()
-  if (sameTrust(value, RECOMMENDED_TRUST)) return null
+  if ((scope === 'modes' ? sameModes : sameLimits)(value, RECOMMENDED_TRUST)) return null
   return (
-    <ClayButton variant="ghost" size="sm" onClick={onReset} leadingIcon={<RotateCcw className="size-4" />} className="self-start">
+    <ClayButton variant="ghost" size="sm" onClick={() => onChange(resetTrust(value, scope))} leadingIcon={<RotateCcw className="size-4" />} className="self-start">
       {t('trust.reset')}
     </ClayButton>
   )

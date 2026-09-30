@@ -34,7 +34,6 @@ export const OtpInput = forwardRef<HTMLInputElement, OtpInputProps>(function Otp
         inputMode="numeric"
         autoComplete="one-time-code"
         pattern="\d*"
-        maxLength={length}
         value={value}
         readOnly={busy}
         aria-busy={busy || undefined}
@@ -42,6 +41,7 @@ export const OtpInput = forwardRef<HTMLInputElement, OtpInputProps>(function Otp
         aria-label={label}
         aria-invalid={invalid || undefined}
         aria-describedby={describedBy}
+        // No maxLength: a pasted "482 913" must keep all six digits before the spaces are dropped.
         onChange={(e) => onChange(e.target.value.replace(/\D/g, '').slice(0, length))}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}

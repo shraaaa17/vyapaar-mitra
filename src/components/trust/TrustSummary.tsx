@@ -37,7 +37,7 @@ export function TrustSummary({ value, className }: { value: TrustSettings; class
         <span className="min-w-0 flex-1 font-medium text-paytm-blue">{t('trust.loanTitle')}</span>
         <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-paytm-blue px-2.5 py-1 text-sm font-semibold text-white">
           <Lock aria-hidden className="size-3.5" />
-          {t('trust.loanLocked')}
+          {t('trust.loanLocked')} · {t('trust.loanYouDecide')}
         </span>
       </li>
       <li className={cn(row, 'text-sm text-slate')}>

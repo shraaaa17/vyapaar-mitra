@@ -11,12 +11,16 @@ import type { LanguageCode } from '../mocks/types'
 export const speechSupported = () => typeof window !== 'undefined' && 'speechSynthesis' in window
 
 function pickVoice(code: LanguageCode) {
-  const wanted = getLanguage(code).speechLangs
+  const wanted = getLanguage(code).speechLangs.map((l) => l.toLowerCase())
   const voices = window.speechSynthesis.getVoices()
-  for (const lang of wanted) {
-    const exact = voices.find((v) => v.lang.toLowerCase() === lang.toLowerCase())
+  const lang = (v: SpeechSynthesisVoice) => v.lang.toLowerCase().replace('_', '-')
+  // Every exact match (mr-IN, then hi-IN) beats any looser one (mr-*, hi-*).
+  for (const want of wanted) {
+    const exact = voices.find((v) => lang(v) === want)
     if (exact) return exact
-    const loose = voices.find((v) => v.lang.toLowerCase().startsWith(lang.slice(0, 2).toLowerCase()))
+  }
+  for (const want of wanted) {
+    const loose = voices.find((v) => lang(v).startsWith(`${want.slice(0, 2)}-`))
     if (loose) return loose
   }
   return undefined
@@ -26,8 +30,11 @@ export function useSpeech() {
   const supported = speechSupported()
   const [speakingId, setSpeakingId] = useState<string | null>(null)
 
-  useEffect(() => () => {
-    if (supported) window.speechSynthesis.cancel()
+  useEffect(() => {
+    if (!supported) return
+    // Chrome loads voices lazily: asking once now means they're ready by the first tap.
+    window.speechSynthesis.getVoices()
+    return () => window.speechSynthesis.cancel()
   }, [supported])
 
   const stop = useCallback(() => {

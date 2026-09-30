@@ -4,6 +4,7 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '../../lib/cn'
 import { Eyelids, type Eye } from './Eyelids'
+import { IDLE_SECONDS, idleRepeats } from './idle'
 import { illustrationUrl } from './manifest'
 
 /*
@@ -26,8 +27,9 @@ const SOUNDBOX = { x: 504, y: 548 }
 const SOUNDBOX_LED = { x: 477, y: 606 }
 
 const EASE = [0.22, 1, 0.36, 1] as const
-/** A payment "lands" every few seconds while the character is on screen. */
+/** A payment "lands" a few times after she appears, then she settles. */
 const PAYMENT_EVERY_MS = 9000
+const PAYMENT_TIMES = Math.max(1, Math.floor((IDLE_SECONDS * 1000) / PAYMENT_EVERY_MS))
 const PAYMENT_SHOWN_MS = 2800
 
 export type MerchantPaymentProps = {
@@ -54,11 +56,9 @@ export function MerchantPayment({ className, amount = 250 }: MerchantPaymentProp
 
   useEffect(() => {
     if (reduce) return
-    const first = window.setTimeout(playPayment, 1700)
-    const every = window.setInterval(playPayment, PAYMENT_EVERY_MS)
+    const timers = Array.from({ length: PAYMENT_TIMES }, (_, i) => window.setTimeout(playPayment, 1700 + i * PAYMENT_EVERY_MS))
     return () => {
-      window.clearTimeout(first)
-      window.clearInterval(every)
+      timers.forEach((id) => window.clearTimeout(id))
       window.clearTimeout(hideTimer.current)
     }
   }, [reduce, playPayment])
@@ -91,7 +91,7 @@ export function MerchantPayment({ className, amount = 250 }: MerchantPaymentProp
         className="absolute -bottom-[1.2%] left-1/2 h-[4.5%] w-[62%] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgb(0_46_110/0.28),rgb(0_46_110/0))]"
         initial={reduce ? false : { opacity: 0, scaleX: 0.4 }}
         animate={reduce ? undefined : { opacity: 1, scaleX: [1, 0.96, 1] }}
-        transition={{ opacity: { duration: 0.6, delay: 0.35 }, scaleX: { duration: 3.6, repeat: Infinity, ease: 'easeInOut' } }}
+        transition={{ opacity: { duration: 0.6, delay: 0.35 }, scaleX: { duration: 3.6, repeat: idleRepeats(3.6), ease: 'easeInOut' } }}
       />
 
       {/* Entrance: she steps in from the side and settles with a small bounce. */}
@@ -117,7 +117,7 @@ export function MerchantPayment({ className, amount = 250 }: MerchantPaymentProp
               className="absolute inset-0"
               style={{ originX: 0.5, originY: 1 }}
               animate={reduce ? undefined : { rotate: [0, 0.9, 0, -0.9, 0], scaleY: [1, 1.008, 1, 1.008, 1] }}
-              transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+              transition={{ duration: 7, repeat: idleRepeats(7), ease: 'easeInOut' }}
             >
               <svg viewBox={`0 0 ${W} ${H}`} className="block h-full w-full overflow-visible" focusable="false">
                 <defs>

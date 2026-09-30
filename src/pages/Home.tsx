@@ -32,7 +32,16 @@ export function Home() {
                   }}
                   icon={<IndianRupee />}
                 />
-                <MetricCard label={t('pages.home.mitrasRead')} value={<span className="text-2xl">{data.briefing.reasoning}</span>} icon={<TrendingDown />} />
+                <MetricCard
+                  label={t('pages.home.mitrasRead')}
+                  // Agent text is English until the Home briefing is translated (phase 3).
+                  value={
+                    <span lang="en" className="text-2xl">
+                      {data.briefing.reasoning}
+                    </span>
+                  }
+                  icon={<TrendingDown />}
+                />
                 <MetricCard label={t('pages.home.insightsToday')} value={data.insights.length} icon={<Sparkles />} />
               </>
             )}

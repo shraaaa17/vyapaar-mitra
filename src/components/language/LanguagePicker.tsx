@@ -77,9 +77,8 @@ export function LanguagePicker({
                 {supported && (
                   <button
                     type="button"
-                    onClick={() => (speaking ? stop() : speak(language.sample, language.code, language.code))}
+                    onClick={() => (speaking ? stop() : speak(language.speechSample ?? language.sample, language.code, language.code))}
                     aria-label={speaking ? t('onboarding.stopListening') : t('onboarding.listenTo', { language: language.nativeName })}
-                    aria-pressed={speaking}
                     className="absolute right-2 bottom-2 flex size-12 items-center justify-center rounded-full text-paytm-cyan-ink transition-colors hover:bg-sky-wash"
                   >
                     {speaking ? <Square className="size-4 fill-current" /> : <Volume2 className="size-5" />}

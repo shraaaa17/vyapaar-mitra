@@ -22,10 +22,19 @@ export const UNDO_WINDOWS = [15, 30, 60, 120] as const
 /** The pilot store's regulars, used to make the spend cap concrete. */
 export const REGULARS_COUNT = 40
 
-export function sameTrust(a: TrustSettings, b: TrustSettings) {
-  return (
-    a.campaignSpendCap === b.campaignSpendCap &&
-    a.undoWindowMinutes === b.undoWindowMinutes &&
-    CONTROLLABLE_ACTIONS.every((k) => a.modes[k] === b.modes[k])
-  )
+export type TrustScope = 'modes' | 'limits'
+
+export function sameModes(a: TrustSettings, b: TrustSettings) {
+  return CONTROLLABLE_ACTIONS.every((k) => a.modes[k] === b.modes[k])
+}
+
+export function sameLimits(a: TrustSettings, b: TrustSettings) {
+  return a.campaignSpendCap === b.campaignSpendCap && a.undoWindowMinutes === b.undoWindowMinutes
+}
+
+/** `value` with one part (the modes, or the limits) put back to Mitra's suggestion. */
+export function resetTrust(value: TrustSettings, scope: TrustScope): TrustSettings {
+  return scope === 'modes'
+    ? { ...value, modes: RECOMMENDED_TRUST.modes }
+    : { ...value, campaignSpendCap: RECOMMENDED_TRUST.campaignSpendCap, undoWindowMinutes: RECOMMENDED_TRUST.undoWindowMinutes }
 }

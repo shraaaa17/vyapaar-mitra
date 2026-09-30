@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { AuthLayout } from '../components/auth/AuthLayout'
 import { ClayButton, ClayCard, OtpInput } from '../components/ui'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { useNow } from '../hooks/useNow'
 import { api, ApiError } from '../lib/api'
 import { useSession, type PendingOtp } from '../store/session'
@@ -20,31 +21,15 @@ export function LoginOtp({ pending }: { pending: PendingOtp }) {
   const [notice, setNotice] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const errorId = useId()
+  useDocumentTitle(t('auth.otpTitle'))
   const hintId = useId()
 
   const resendAt = pending.sentAt + pending.resendAfterSeconds * 1000
-  const now = useNow(1000, resendAt)
+  const now = useNow()
   const secondsLeft = Math.max(0, Math.ceil((resendAt - now) / 1000))
 
-  const verify = useMutation({
-    mutationFn: api.verifyOtp,
-    onSuccess: () => {
-      signIn(pending.phone)
-      navigate('/', { replace: true })
-    },
-    onError: (e) => {
-      setError(
-        e instanceof ApiError && e.status === 401
-          ? t('auth.otpWrong')
-          : e instanceof ApiError && e.status === 422
-            ? t('auth.otpIncomplete')
-            : t('auth.networkError'),
-      )
-      setOtp('')
-      inputRef.current?.focus()
-    },
-  })
-
+  const verify = useMutation({ mutationFn: api.verifyOtp })
+  const verifying = useRef(false)
   const resend = useMutation({
     mutationFn: api.sendOtp,
     onSuccess: (res) => {
@@ -58,13 +43,39 @@ export function LoginOtp({ pending }: { pending: PendingOtp }) {
   })
 
   const submit = (code: string) => {
+    // A ref, not isPending: autofill and a tap can both land in the same tick.
+    if (verifying.current) return
     if (code.length !== 6) {
       setError(t('auth.otpIncomplete'))
       inputRef.current?.focus()
       return
     }
     setError(null)
-    verify.mutate({ phone: pending.phone, otp: code })
+    verifying.current = true
+    // Callbacks passed here don't run if the merchant has already left (e.g. tapped "Change number").
+    verify.mutate(
+      { phone: pending.phone, otp: code },
+      {
+        onSuccess: () => {
+          signIn(pending.phone)
+          navigate('/', { replace: true })
+        },
+        onError: (e) => {
+          setError(
+            e instanceof ApiError && e.status === 401
+              ? t('auth.otpWrong')
+              : e instanceof ApiError && e.status === 422
+                ? t('auth.otpIncomplete')
+                : t('auth.networkError'),
+          )
+          setOtp('')
+          inputRef.current?.focus()
+        },
+        onSettled: () => {
+          verifying.current = false
+        },
+      },
+    )
   }
 
   const onSubmit = (event: FormEvent) => {
@@ -82,7 +93,8 @@ export function LoginOtp({ pending }: { pending: PendingOtp }) {
             <button
               type="button"
               onClick={() => navigate('/login')}
-              className="inline-flex min-h-12 items-center gap-1 font-semibold text-paytm-cyan-ink underline-offset-4 hover:underline"
+              disabled={verify.isPending}
+              className="inline-flex min-h-12 items-center gap-1 font-semibold text-paytm-cyan-ink underline-offset-4 hover:underline disabled:opacity-50"
             >
               <ArrowLeft aria-hidden className="size-4" />
               {t('auth.changeNumber')}

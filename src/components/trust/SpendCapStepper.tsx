@@ -12,6 +12,7 @@ export function SpendCapStepper({ value, onChange }: { value: number; onChange: 
   const { t } = useTranslation()
   const labelId = useId()
   const helpId = useId()
+  const perRegularId = useId()
   const { min, max, step } = SPEND_CAP
   const set = (next: number) => onChange(Math.min(max, Math.max(min, Math.round(next / step) * step)))
 
@@ -53,7 +54,7 @@ export function SpendCapStepper({ value, onChange }: { value: number; onChange: 
           role="spinbutton"
           tabIndex={0}
           aria-labelledby={labelId}
-          aria-describedby={helpId}
+          aria-describedby={`${helpId} ${perRegularId}`}
           aria-valuemin={min}
           aria-valuemax={max}
           aria-valuenow={value}
@@ -67,7 +68,7 @@ export function SpendCapStepper({ value, onChange }: { value: number; onChange: 
           <Plus className="size-5" strokeWidth={2.6} />
         </button>
       </div>
-      <p className="text-sm text-slate" aria-live="polite">
+      <p id={perRegularId} className="text-sm text-slate">
         {t('trust.capPerRegular', { amount: formatINR(perRegular), count: REGULARS_COUNT })}
       </p>
     </div>

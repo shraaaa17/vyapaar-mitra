@@ -31,8 +31,9 @@ const variantClasses: Record<Variant, string> = {
   ghost: 'bg-transparent text-paytm-blue hover:bg-mist',
 }
 
+// Every size keeps the 48px minimum tap target; sm is narrower and quieter, not shorter.
 const sizeClasses: Record<Size, string> = {
-  sm: 'h-10 px-4 text-sm gap-1.5',
+  sm: 'h-12 px-4 text-sm gap-1.5',
   md: 'h-12 px-6 text-[15px] gap-2',
   lg: 'h-14 px-7 text-base gap-2.5',
 }
@@ -55,7 +56,7 @@ export function ClayButton(props: ClayButtonProps) {
 
   const classes = cn(
     'clay-button inline-flex select-none items-center justify-center font-semibold whitespace-nowrap',
-    'disabled:pointer-events-none disabled:opacity-50',
+    'disabled:pointer-events-none disabled:opacity-50 aria-disabled:cursor-not-allowed aria-disabled:opacity-70',
     variantClasses[variant],
     sizeClasses[size],
     fullWidth && 'w-full',

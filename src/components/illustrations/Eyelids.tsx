@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { useId } from 'react'
+import { idleRepeats } from './idle'
 
 export type Eye = {
   cx: number
@@ -18,7 +19,7 @@ export type Eye = {
  */
 export function Eyelids({ eyes, delay = 2.4, every = 4.4, lash = '#2b1d17' }: { eyes: Eye[]; delay?: number; every?: number; lash?: string }) {
   const uid = useId().replace(/[^a-zA-Z0-9-]/g, '')
-  const blink = { duration: 0.26, repeat: Infinity, repeatDelay: every, delay }
+  const blink = { duration: 0.26, repeat: idleRepeats(every), repeatDelay: every, delay }
   return (
     <g aria-hidden>
       <defs>
