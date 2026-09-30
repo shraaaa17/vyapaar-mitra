@@ -22,6 +22,10 @@ export const en = {
     saturday: 'Saturday',
     sunday: 'Sunday',
   },
+  character: {
+    alt: 'A smiling shopkeeper holding a phone that shows “Payment Successful” and a QR soundbox',
+    paymentReceived: '{{amount}} received',
+  },
   nav: {
     main: 'Main',
     home: 'Home',

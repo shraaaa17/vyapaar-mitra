@@ -1,0 +1,265 @@
+import { AnimatePresence, motion, useAnimate, useReducedMotion } from 'framer-motion'
+import { Volume2 } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import shopkeeperUrl from '../../assets/characters/shopkeeper.webp'
+import { cn } from '../../lib/cn'
+
+/*
+ * The shopkeeper is one flat illustration, so she is brought to life with
+ * overlays drawn in the image's own pixel space (601 × 1261): eyelids for a
+ * blink, a pulse on the phone's "Payment Successful" tick, and the soundbox
+ * lighting up with sound waves. Coordinates were measured on the cutout made by
+ * design/characters/cutout.py.
+ */
+const W = 601
+const H = 1261
+
+const EYES = [
+  { id: 'l', cx: 217, cy: 280, rx: 45, ry: 40, light: '#f9c49a', dark: '#f1b284' },
+  { id: 'r', cx: 391, cy: 313, rx: 43, ry: 37, light: '#fbc79d', dark: '#f0b082' },
+]
+const PHONE_TICK = { x: 96, y: 513 }
+const SOUNDBOX = { x: 504, y: 548 }
+const SOUNDBOX_LED = { x: 477, y: 606 }
+
+const EASE = [0.22, 1, 0.36, 1] as const
+/** A payment "lands" every few seconds while the character is on screen. */
+const PAYMENT_EVERY_MS = 9000
+const PAYMENT_SHOWN_MS = 2800
+
+export type ShopkeeperProps = {
+  className?: string
+  /** Rupees announced by the soundbox bubble. */
+  amount?: number
+}
+
+export function Shopkeeper({ className, amount = 250 }: ShopkeeperProps) {
+  const { t } = useTranslation()
+  const reduce = useReducedMotion()
+  const [scope, animate] = useAnimate()
+  const [paid, setPaid] = useState(false)
+  const hideTimer = useRef<number | undefined>(undefined)
+
+  // One "payment received" moment: she leans toward the phone while the
+  // soundbox lights up and announces the amount.
+  const playPayment = useCallback(() => {
+    setPaid(true)
+    window.clearTimeout(hideTimer.current)
+    hideTimer.current = window.setTimeout(() => setPaid(false), PAYMENT_SHOWN_MS)
+  }, [])
+
+  useEffect(() => {
+    if (reduce) return
+    const first = window.setTimeout(playPayment, 1700)
+    const every = window.setInterval(playPayment, PAYMENT_EVERY_MS)
+    return () => {
+      window.clearTimeout(first)
+      window.clearInterval(every)
+      window.clearTimeout(hideTimer.current)
+    }
+  }, [reduce, playPayment])
+
+  // A tap makes her hop and replays the payment moment.
+  const onTap = () => {
+    if (reduce || !scope.current) return
+    void animate(
+      scope.current,
+      { y: [0, -26, 0, -6, 0], scaleY: [1, 1.03, 0.97, 1.01, 1] },
+      { duration: 0.75, ease: 'easeOut' },
+    )
+    playPayment()
+  }
+
+  // Without motion she simply stands with the payment bubble showing.
+  const showBubble = reduce || paid
+
+  return (
+    <div
+      role="img"
+      aria-label={t('character.alt')}
+      onClick={onTap}
+      className={cn('relative select-none [-webkit-tap-highlight-color:transparent]', className)}
+      style={{ aspectRatio: `${W} / ${H}` }}
+    >
+      {/* Ground shadow: soft, and it tightens when she hops or sways. */}
+      <motion.div
+        aria-hidden
+        className="absolute -bottom-[1.2%] left-1/2 h-[4.5%] w-[62%] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgb(0_46_110/0.28),rgb(0_46_110/0))]"
+        initial={reduce ? false : { opacity: 0, scaleX: 0.4 }}
+        animate={reduce ? undefined : { opacity: 1, scaleX: [1, 0.96, 1] }}
+        transition={{ opacity: { duration: 0.6, delay: 0.35 }, scaleX: { duration: 3.6, repeat: Infinity, ease: 'easeInOut' } }}
+      />
+
+      {/* Entrance: she steps in from the side and settles with a small bounce. */}
+      <motion.div
+        aria-hidden
+        className="absolute inset-0"
+        style={{ originX: 0.5, originY: 1 }}
+        initial={reduce ? false : { opacity: 0, x: '18%', y: '4%', rotate: 5, scale: 0.94 }}
+        animate={{ opacity: 1, x: 0, y: 0, rotate: 0, scale: 1 }}
+        transition={{ type: 'spring', stiffness: 170, damping: 14, mass: 0.9, delay: 0.1 }}
+      >
+        {/* Tap hop */}
+        <div ref={scope} className="absolute inset-0" style={{ transformOrigin: '50% 100%' }}>
+          {/* Lean toward the phone when a payment lands */}
+          <motion.div
+            className="absolute inset-0"
+            style={{ originX: 0.5, originY: 1 }}
+            animate={reduce ? undefined : { rotate: paid ? -2.6 : 0 }}
+            transition={{ duration: 0.7, ease: EASE }}
+          >
+            {/* Idle: gentle sway and breathing */}
+            <motion.div
+              className="absolute inset-0"
+              style={{ originX: 0.5, originY: 1 }}
+              animate={reduce ? undefined : { rotate: [0, 0.9, 0, -0.9, 0], scaleY: [1, 1.008, 1, 1.008, 1] }}
+              transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <svg viewBox={`0 0 ${W} ${H}`} className="block h-full w-full overflow-visible" focusable="false">
+                <defs>
+                  <filter id="shk-soft" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="2.2" />
+                  </filter>
+                  <filter id="shk-glow" x="-100%" y="-100%" width="300%" height="300%">
+                    <feGaussianBlur stdDeviation="6" />
+                  </filter>
+                  {EYES.map((e) => (
+                    <g key={e.id}>
+                      <radialGradient id={`shk-lid-${e.id}`} cx="0.5" cy="0.35" r="0.7">
+                        <stop offset="0" stopColor={e.light} />
+                        <stop offset="0.9" stopColor={e.dark} />
+                        <stop offset="1" stopColor="#6b4332" />
+                      </radialGradient>
+                      <mask
+                        id={`shk-eye-${e.id}`}
+                        maskUnits="userSpaceOnUse"
+                        x={e.cx - e.rx - 10}
+                        y={e.cy - e.ry - 10}
+                        width={2 * e.rx + 20}
+                        height={2 * e.ry + 20}
+                      >
+                        <ellipse cx={e.cx} cy={e.cy} rx={e.rx} ry={e.ry} fill="#fff" filter="url(#shk-soft)" />
+                      </mask>
+                    </g>
+                  ))}
+                </defs>
+
+                <image href={shopkeeperUrl} width={W} height={H} />
+
+                {/* Blink: eyelids drop for a moment, then a closed-eye smile line shows. */}
+                {!reduce &&
+                  EYES.map((e) => (
+                    <g key={e.id}>
+                      <g mask={`url(#shk-eye-${e.id})`}>
+                        <motion.rect
+                          x={e.cx - e.rx - 6}
+                          y={e.cy - e.ry - 6}
+                          width={2 * e.rx + 12}
+                          height={2 * e.ry + 12}
+                          fill={`url(#shk-lid-${e.id})`}
+                          style={{ originY: 0 }}
+                          initial={{ scaleY: 0 }}
+                          animate={{ scaleY: [0, 1, 1, 0] }}
+                          transition={{ duration: 0.26, times: [0, 0.4, 0.6, 1], repeat: Infinity, repeatDelay: 4.2, delay: 2.4 }}
+                        />
+                      </g>
+                      <motion.path
+                        d={`M ${e.cx - e.rx + 8} ${e.cy + e.ry * 0.12} Q ${e.cx} ${e.cy + e.ry * 0.78} ${e.cx + e.rx - 8} ${e.cy + e.ry * 0.12}`}
+                        fill="none"
+                        stroke="#4a2e22"
+                        strokeWidth={5}
+                        strokeLinecap="round"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: [0, 0, 1, 1, 0, 0] }}
+                        transition={{
+                          duration: 0.26,
+                          times: [0, 0.32, 0.4, 0.6, 0.68, 1],
+                          repeat: Infinity,
+                          repeatDelay: 4.2,
+                          delay: 2.4,
+                        }}
+                      />
+                    </g>
+                  ))}
+
+                <AnimatePresence>
+                  {paid && !reduce && (
+                    <motion.g key="payment" initial={{ opacity: 1 }} exit={{ opacity: 0, transition: { duration: 0.4 } }}>
+                      {/* Pulse rings on the phone's success tick */}
+                      {[0, 0.45].map((delay) => (
+                        <motion.circle
+                          key={delay}
+                          cx={PHONE_TICK.x}
+                          cy={PHONE_TICK.y}
+                          fill="none"
+                          stroke="#0f9d6b"
+                          strokeWidth={4}
+                          initial={{ r: 18, opacity: 0.8 }}
+                          animate={{ r: 70, opacity: 0 }}
+                          transition={{ duration: 1.1, delay, ease: 'easeOut' }}
+                        />
+                      ))}
+                      {/* Soundbox light */}
+                      <motion.circle
+                        cx={SOUNDBOX_LED.x}
+                        cy={SOUNDBOX_LED.y}
+                        r={20}
+                        fill="#3ddc84"
+                        filter="url(#shk-glow)"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: [0, 0.95, 0.35, 0.95, 0.35, 0.8] }}
+                        transition={{ duration: 1.8, ease: 'easeInOut' }}
+                      />
+                      {/* Sound waves from the soundbox */}
+                      {[0, 1, 2].map((i) => {
+                        const r = 108 + i * 26
+                        const a = (deg: number) => (deg * Math.PI) / 180
+                        const x1 = SOUNDBOX.x + r * Math.cos(a(-40))
+                        const y1 = SOUNDBOX.y + r * Math.sin(a(-40))
+                        const x2 = SOUNDBOX.x + r * Math.cos(a(22))
+                        const y2 = SOUNDBOX.y + r * Math.sin(a(22))
+                        return (
+                          <motion.path
+                            key={i}
+                            d={`M ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2}`}
+                            fill="none"
+                            stroke="#00b9f1"
+                            strokeWidth={9}
+                            strokeLinecap="round"
+                            initial={{ opacity: 0, pathLength: 0.3 }}
+                            animate={{ opacity: [0, 1, 0], pathLength: 1 }}
+                            transition={{ duration: 1.1, delay: 0.15 + i * 0.18, repeat: 1, repeatDelay: 0.2 }}
+                          />
+                        )
+                      })}
+                    </motion.g>
+                  )}
+                </AnimatePresence>
+              </svg>
+            </motion.div>
+          </motion.div>
+        </div>
+      </motion.div>
+
+      {/* What the soundbox says */}
+      <AnimatePresence>
+        {showBubble && (
+          <motion.div
+            aria-hidden
+            key="bubble"
+            className="absolute top-[27%] left-[64%] z-10 flex items-center gap-1.5 rounded-2xl rounded-bl-md bg-white px-3 py-2 text-sm font-semibold whitespace-nowrap text-paytm-blue [box-shadow:var(--clay-shadow-soft)] sm:text-[15px]"
+            initial={reduce ? false : { opacity: 0, scale: 0.6, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: -6, transition: { duration: 0.25 } }}
+            transition={{ type: 'spring', stiffness: 380, damping: 20, delay: reduce ? 0 : 0.2 }}
+            style={{ originX: 0, originY: 1 }}
+          >
+            <Volume2 className="size-4 shrink-0 text-paytm-cyan-600" strokeWidth={2.4} />
+            {t('character.paymentReceived', { amount: `₹${amount.toLocaleString('en-IN')}` })}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}

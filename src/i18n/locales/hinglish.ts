@@ -22,6 +22,10 @@ export const hinglish = {
     saturday: 'Shanivaar',
     sunday: 'Ravivaar',
   },
+  character: {
+    alt: 'Muskurati dukaandaar, haath mein “Payment Successful” wala phone aur QR soundbox',
+    paymentReceived: '{{amount}} mil gaye',
+  },
   nav: {
     main: 'Main menu',
     home: 'Home',

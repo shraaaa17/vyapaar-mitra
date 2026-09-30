@@ -22,6 +22,10 @@ export const mr = {
     saturday: 'शनिवार',
     sunday: 'रविवार',
   },
+  character: {
+    alt: 'हसतमुख दुकानदार, हातात “Payment Successful” दाखवणारा फोन आणि QR साउंडबॉक्स',
+    paymentReceived: '{{amount}} मिळाले',
+  },
   nav: {
     main: 'मुख्य मेनू',
     home: 'होम',
