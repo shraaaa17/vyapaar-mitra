@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, createHashRouter } from 'react-router-dom'
 import { Navbar } from './components/Navbar'
 import { AppShell } from './components/layout/AppShell'
 import { LoginRoute, OnboardingRoute, RequireMerchant } from './components/layout/RouteGuards'
@@ -13,7 +13,11 @@ import { NotFound } from './pages/NotFound'
 import { Regulars } from './pages/Regulars'
 import { Settings } from './pages/Settings'
 
-export const router = createBrowserRouter([
+// Static builds (`npm run build:static`) can be opened from any host or folder,
+// where deep links have no server fallback, so they use hash URLs (#/actions).
+const createRouter = import.meta.env.MODE === 'static' ? createHashRouter : createBrowserRouter
+
+export const router = createRouter([
   { path: '/login', element: <LoginRoute /> },
   { path: '/onboarding', element: <OnboardingRoute /> },
   {

@@ -18,6 +18,7 @@ npm run dev        # local dev server
 npm run typecheck  # tsc
 npm run lint       # oxlint
 npm run build      # typecheck + production build
+npm run build:static  # build that opens from any static host or folder (hash URLs, relative paths) → dist-static/
 ```
 
 ## Design system

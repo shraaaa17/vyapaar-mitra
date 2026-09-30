@@ -14,6 +14,10 @@ export function AppShell() {
     <div className="flex min-h-dvh">
       <a
         href="#main"
+        onClick={(event) => {
+          event.preventDefault()
+          document.getElementById('main')?.focus()
+        }}
         className="sr-only z-[60] rounded-full bg-paytm-blue px-5 py-3 font-semibold text-white focus:not-sr-only focus:fixed focus:top-4 focus:left-4"
       >
         Skip to content
