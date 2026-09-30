@@ -4,11 +4,11 @@ import { cn } from '../../lib/cn'
 type Tone = 'cyan' | 'blue' | 'neutral' | 'success' | 'caution'
 
 const toneClasses: Record<Tone, string> = {
-  cyan: 'bg-sky-wash text-paytm-cyan-600',
+  cyan: 'bg-sky-wash text-paytm-cyan-ink',
   blue: 'bg-paytm-blue text-white',
   neutral: 'bg-mist text-paytm-blue',
-  success: 'bg-success-wash text-success',
-  caution: 'bg-caution-wash text-caution',
+  success: 'bg-success-wash text-success-ink',
+  caution: 'bg-caution-wash text-caution-ink',
 }
 
 /** Compact status label. Use sparingly; the spec warns against overusing pills. */

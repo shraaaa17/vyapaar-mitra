@@ -1,3 +1,4 @@
+import { SPEND_CAP, UNDO_WINDOWS } from '../lib/trust'
 import { createSeed, merchant, STORY, type MockDatabase } from './seed'
 import type {
   ActionDecisionRequest,
@@ -112,7 +113,7 @@ function maskPhone(phone: string) {
   return `+91 ${phone.slice(0, 2)}******${phone.slice(-2)}`
 }
 
-/** Mock OTP: any 10-digit Indian mobile gets a code, and any 6 digits verify. */
+/** Mock OTP: any 10-digit Indian mobile gets a code, and any 6 digits except 000000 verify. */
 function sendOtp({ phone }: OtpRequest): OtpResponse {
   if (!INDIAN_MOBILE.test(phone)) throw new MockApiError(422, 'Enter a valid 10-digit mobile number')
   return { phoneMasked: maskPhone(phone), resendAfterSeconds: 30 }
@@ -121,10 +122,20 @@ function sendOtp({ phone }: OtpRequest): OtpResponse {
 function verifyOtp({ phone, otp }: OtpVerifyRequest): OtpVerifyResponse {
   if (!INDIAN_MOBILE.test(phone)) throw new MockApiError(422, 'Enter a valid 10-digit mobile number')
   if (!/^\d{6}$/.test(otp)) throw new MockApiError(422, 'Enter the 6-digit OTP')
+  // 000000 plays the part of a wrong OTP so the error state can be seen.
+  if (otp === '000000') throw new MockApiError(401, 'Incorrect OTP')
   return { merchant: { ...merchant, phoneMasked: maskPhone(phone) } }
 }
 
 function updateTrust(next: TrustSettings): TrustSettings {
+  const { min, max, step } = SPEND_CAP
+  const cap = next.campaignSpendCap
+  if (!Number.isInteger(cap) || cap < min || cap > max || cap % step !== 0) {
+    throw new MockApiError(422, `Spend cap must be ₹${min}–₹${max} in steps of ₹${step}`)
+  }
+  if (!(UNDO_WINDOWS as readonly number[]).includes(next.undoWindowMinutes)) {
+    throw new MockApiError(422, `Undo window must be one of ${UNDO_WINDOWS.join(', ')} minutes`)
+  }
   // Loans can never be switched to auto, whatever the client sends.
   db.trust = { ...next, modes: { ...next.modes, loan: 'recommend_only' } }
   persist()

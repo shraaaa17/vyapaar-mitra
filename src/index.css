@@ -13,6 +13,8 @@
   --color-paytm-cyan: #00b9f1;
   --color-paytm-cyan-600: #0096c7;
   --color-paytm-cyan-300: #7fdcf8;
+  /* Cyan dark enough for small text (AA on white and the light washes) */
+  --color-paytm-cyan-ink: #00739a;
 
   /* Surfaces */
   --color-cloud: #f4faff;
@@ -23,23 +25,28 @@
   /* Text */
   --color-ink: #002e6e;
   --color-slate: #425466;
-  --color-slate-soft: #6b7c8f;
+  --color-slate-soft: #5a6a7c;
 
   /* Status: used sparingly for outcomes and risk, never as a dominant colour */
   --color-success: #0f9d6b;
   --color-success-wash: #e3f7ef;
+  --color-success-ink: #0b7a53;
   --color-caution: #b26a00;
   --color-caution-wash: #fff4e0;
+  --color-caution-ink: #8a5200;
   --color-danger: #c42b1c;
   --color-danger-wash: #fdecea;
 
   /* Risk coding: green low, amber medium, red high */
   --color-risk-low: var(--color-success);
   --color-risk-low-wash: var(--color-success-wash);
+  --color-risk-low-ink: var(--color-success-ink);
   --color-risk-medium: var(--color-caution);
   --color-risk-medium-wash: var(--color-caution-wash);
+  --color-risk-medium-ink: var(--color-caution-ink);
   --color-risk-high: var(--color-danger);
   --color-risk-high-wash: var(--color-danger-wash);
+  --color-risk-high-ink: var(--color-danger);
 
   /* Type */
   --font-sans: 'Poppins', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -198,10 +205,23 @@
     text-wrap: pretty;
   }
 
+  /* Blue ring with a cyan halo: at least 3:1 against white, cloud and the washes. */
   :focus-visible {
-    outline: 3px solid var(--color-paytm-cyan);
+    outline: 3px solid var(--color-paytm-blue-600);
     outline-offset: 3px;
     border-radius: 12px;
+    box-shadow: 0 0 0 6px rgb(0 185 241 / 0.3);
+  }
+
+  /* Devanagari needs no tracking and a taller line. :lang(hi) also matches
+     hi-Latn (Hinglish), which is Latin script, so it is excluded. */
+  :is(:lang(hi), :lang(mr)):not(:lang(hi-Latn)) {
+    letter-spacing: 0;
+    line-height: 1.75;
+  }
+  :is(:lang(hi), :lang(mr)):not(:lang(hi-Latn)) :is(h1, h2, h3, h4) {
+    letter-spacing: 0;
+    line-height: 1.35;
   }
 
   ::selection {

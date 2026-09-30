@@ -55,7 +55,7 @@ export const OtpInput = forwardRef<HTMLInputElement, OtpInputProps>(function Otp
               key={i}
               className={cn(
                 'clay-inset flex h-14 items-center justify-center rounded-2xl text-2xl font-semibold text-paytm-blue tabular-nums transition-shadow sm:h-16',
-                isActive && 'ring-3 ring-paytm-cyan',
+                isActive && 'ring-3 ring-paytm-blue-600',
                 invalid && !isActive && 'ring-2 ring-danger',
                 disabled && 'opacity-60',
               )}

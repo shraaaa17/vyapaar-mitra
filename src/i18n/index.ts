@@ -29,6 +29,9 @@ void i18n.use(initReactI18next).init({
   // Every locale is complete (enforced by types), so fallbacks only guard against typos.
   fallbackLng: { mr: ['hi', 'en'], default: ['en'] },
   supportedLngs: ['hi-Latn', 'en', 'hi', 'mr'],
+  // Without this, Hinglish ('hi-Latn') would fall back to Devanagari Hindi
+  // for any missing key before reaching English.
+  load: 'currentOnly',
   interpolation: { escapeValue: false }, // React already escapes
   initAsync: false,
   returnNull: false,

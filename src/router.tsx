@@ -1,7 +1,7 @@
 import { createBrowserRouter, createHashRouter } from 'react-router-dom'
 import { Navbar } from './components/Navbar'
 import { AppShell } from './components/layout/AppShell'
-import { LoginRoute, OnboardingRoute, RequireMerchant } from './components/layout/RouteGuards'
+import { LoginOtpRoute, LoginRoute, OnboardingRoute, RequireMerchant } from './components/layout/RouteGuards'
 import { Actions } from './pages/Actions'
 import { AskMitra } from './pages/AskMitra'
 import { Campaigns } from './pages/Campaigns'
@@ -19,6 +19,7 @@ const createRouter = import.meta.env.MODE === 'static' ? createHashRouter : crea
 
 export const router = createRouter([
   { path: '/login', element: <LoginRoute /> },
+  { path: '/login/otp', element: <LoginOtpRoute /> },
   { path: '/onboarding', element: <OnboardingRoute /> },
   {
     // Internal reference page for the clay design system.

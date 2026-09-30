@@ -1,23 +1,25 @@
 import { AnimatePresence, motion, useAnimate, useReducedMotion } from 'framer-motion'
 import { Volume2 } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import shopkeeperUrl from '../../assets/characters/shopkeeper.webp'
 import { cn } from '../../lib/cn'
+import { Eyelids, type Eye } from './Eyelids'
+import { illustrationUrl } from './manifest'
 
 /*
- * The shopkeeper is one flat illustration, so she is brought to life with
+ * A merchant receiving a payment: supporting art beside Mitra, the mascot.
+ * She is one flat illustration, so she is brought to life with
  * overlays drawn in the image's own pixel space (601 × 1261): eyelids for a
  * blink, a pulse on the phone's "Payment Successful" tick, and the soundbox
  * lighting up with sound waves. Coordinates were measured on the cutout made by
- * design/characters/cutout.py.
+ * design/characters/cutout_shopkeeper.py.
  */
 const W = 601
 const H = 1261
 
-const EYES = [
-  { id: 'l', cx: 217, cy: 280, rx: 45, ry: 40, light: '#f9c49a', dark: '#f1b284' },
-  { id: 'r', cx: 391, cy: 313, rx: 43, ry: 37, light: '#fbc79d', dark: '#f0b082' },
+const EYES: Eye[] = [
+  { cx: 217, cy: 280, rx: 45, ry: 40, skin: ['#f9c49a', '#f1b284'] },
+  { cx: 391, cy: 313, rx: 43, ry: 37, skin: ['#fbc79d', '#f0b082'] },
 ]
 const PHONE_TICK = { x: 96, y: 513 }
 const SOUNDBOX = { x: 504, y: 548 }
@@ -28,16 +30,17 @@ const EASE = [0.22, 1, 0.36, 1] as const
 const PAYMENT_EVERY_MS = 9000
 const PAYMENT_SHOWN_MS = 2800
 
-export type ShopkeeperProps = {
+export type MerchantPaymentProps = {
   className?: string
   /** Rupees announced by the soundbox bubble. */
   amount?: number
 }
 
-export function Shopkeeper({ className, amount = 250 }: ShopkeeperProps) {
+export function MerchantPayment({ className, amount = 250 }: MerchantPaymentProps) {
   const { t } = useTranslation()
   const reduce = useReducedMotion()
   const [scope, animate] = useAnimate()
+  const glowId = `${useId().replace(/[^a-zA-Z0-9-]/g, '')}-glow`
   const [paid, setPaid] = useState(false)
   const hideTimer = useRef<number | undefined>(undefined)
 
@@ -77,7 +80,7 @@ export function Shopkeeper({ className, amount = 250 }: ShopkeeperProps) {
   return (
     <div
       role="img"
-      aria-label={t('character.alt')}
+      aria-label={t('illustrations.merchantPayment')}
       onClick={onTap}
       className={cn('relative select-none [-webkit-tap-highlight-color:transparent]', className)}
       style={{ aspectRatio: `${W} / ${H}` }}
@@ -118,70 +121,14 @@ export function Shopkeeper({ className, amount = 250 }: ShopkeeperProps) {
             >
               <svg viewBox={`0 0 ${W} ${H}`} className="block h-full w-full overflow-visible" focusable="false">
                 <defs>
-                  <filter id="shk-soft" x="-20%" y="-20%" width="140%" height="140%">
-                    <feGaussianBlur stdDeviation="2.2" />
-                  </filter>
-                  <filter id="shk-glow" x="-100%" y="-100%" width="300%" height="300%">
+                  <filter id={glowId} x="-100%" y="-100%" width="300%" height="300%">
                     <feGaussianBlur stdDeviation="6" />
                   </filter>
-                  {EYES.map((e) => (
-                    <g key={e.id}>
-                      <radialGradient id={`shk-lid-${e.id}`} cx="0.5" cy="0.35" r="0.7">
-                        <stop offset="0" stopColor={e.light} />
-                        <stop offset="0.9" stopColor={e.dark} />
-                        <stop offset="1" stopColor="#6b4332" />
-                      </radialGradient>
-                      <mask
-                        id={`shk-eye-${e.id}`}
-                        maskUnits="userSpaceOnUse"
-                        x={e.cx - e.rx - 10}
-                        y={e.cy - e.ry - 10}
-                        width={2 * e.rx + 20}
-                        height={2 * e.ry + 20}
-                      >
-                        <ellipse cx={e.cx} cy={e.cy} rx={e.rx} ry={e.ry} fill="#fff" filter="url(#shk-soft)" />
-                      </mask>
-                    </g>
-                  ))}
                 </defs>
 
-                <image href={shopkeeperUrl} width={W} height={H} />
+                <image href={illustrationUrl('merchant-payment')} width={W} height={H} />
 
-                {/* Blink: eyelids drop for a moment, then a closed-eye smile line shows. */}
-                {!reduce &&
-                  EYES.map((e) => (
-                    <g key={e.id}>
-                      <g mask={`url(#shk-eye-${e.id})`}>
-                        <motion.rect
-                          x={e.cx - e.rx - 6}
-                          y={e.cy - e.ry - 6}
-                          width={2 * e.rx + 12}
-                          height={2 * e.ry + 12}
-                          fill={`url(#shk-lid-${e.id})`}
-                          style={{ originY: 0 }}
-                          initial={{ scaleY: 0 }}
-                          animate={{ scaleY: [0, 1, 1, 0] }}
-                          transition={{ duration: 0.26, times: [0, 0.4, 0.6, 1], repeat: Infinity, repeatDelay: 4.2, delay: 2.4 }}
-                        />
-                      </g>
-                      <motion.path
-                        d={`M ${e.cx - e.rx + 8} ${e.cy + e.ry * 0.12} Q ${e.cx} ${e.cy + e.ry * 0.78} ${e.cx + e.rx - 8} ${e.cy + e.ry * 0.12}`}
-                        fill="none"
-                        stroke="#4a2e22"
-                        strokeWidth={5}
-                        strokeLinecap="round"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: [0, 0, 1, 1, 0, 0] }}
-                        transition={{
-                          duration: 0.26,
-                          times: [0, 0.32, 0.4, 0.6, 0.68, 1],
-                          repeat: Infinity,
-                          repeatDelay: 4.2,
-                          delay: 2.4,
-                        }}
-                      />
-                    </g>
-                  ))}
+                {!reduce && <Eyelids eyes={EYES} lash="#4a2e22" />}
 
                 <AnimatePresence>
                   {paid && !reduce && (
@@ -206,7 +153,7 @@ export function Shopkeeper({ className, amount = 250 }: ShopkeeperProps) {
                         cy={SOUNDBOX_LED.y}
                         r={20}
                         fill="#3ddc84"
-                        filter="url(#shk-glow)"
+                        filter={`url(#${glowId})`}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: [0, 0.95, 0.35, 0.95, 0.35, 0.8] }}
                         transition={{ duration: 1.8, ease: 'easeInOut' }}
@@ -255,8 +202,8 @@ export function Shopkeeper({ className, amount = 250 }: ShopkeeperProps) {
             transition={{ type: 'spring', stiffness: 380, damping: 20, delay: reduce ? 0 : 0.2 }}
             style={{ originX: 0, originY: 1 }}
           >
-            <Volume2 className="size-4 shrink-0 text-paytm-cyan-600" strokeWidth={2.4} />
-            {t('character.paymentReceived', { amount: `₹${amount.toLocaleString('en-IN')}` })}
+            <Volume2 className="size-4 shrink-0 text-paytm-cyan-ink" strokeWidth={2.4} />
+            {t('illustrations.paymentReceived', { amount: `₹${amount.toLocaleString('en-IN')}` })}
           </motion.div>
         )}
       </AnimatePresence>

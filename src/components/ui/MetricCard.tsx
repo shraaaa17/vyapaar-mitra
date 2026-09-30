@@ -18,9 +18,9 @@ export type MetricCardProps = {
 }
 
 const deltaClasses: Record<MetricDelta['direction'], string> = {
-  up: 'bg-success-wash text-success',
-  down: 'bg-caution-wash text-caution',
-  neutral: 'bg-sky-wash text-paytm-cyan-600',
+  up: 'bg-success-wash text-success-ink',
+  down: 'bg-caution-wash text-caution-ink',
+  neutral: 'bg-sky-wash text-paytm-cyan-ink',
 }
 
 /** KPI tile: label, large figure and an optional trend chip. */

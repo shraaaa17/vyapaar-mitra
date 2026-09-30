@@ -2,12 +2,12 @@
 Cuts the shopkeeper character out of her cream studio background.
 
     python3 -m pip install pillow numpy
-    python3 design/characters/cutout.py
+    python3 design/characters/cutout_shopkeeper.py
 
-Writes src/assets/characters/shopkeeper.webp.
+Writes public/illustrations/merchant-payment.webp.
 The ground shadow is removed on purpose: the app draws its own shadow so it
-can move with the character. Overlay coordinates in Shopkeeper.tsx are in the
-cropped image's pixel space, so re-check them if the crop box changes.
+can move with the character. Overlay coordinates in MerchantPayment.tsx are in
+the cropped image's pixel space, so re-check them if the crop box changes.
 """
 from collections import deque
 from pathlib import Path
@@ -15,8 +15,10 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageFilter
 
+from webp_budget import save_webp
+
 HERE = Path(__file__).resolve().parent
-OUT = HERE.parent.parent / 'src' / 'assets' / 'characters' / 'shopkeeper.webp'
+OUT = HERE.parent.parent / 'public' / 'illustrations' / 'merchant-payment.webp'
 
 src = Image.open(HERE / 'shopkeeper-original.png').convert('RGB')
 a = np.asarray(src).astype(np.float32)
@@ -86,5 +88,5 @@ bbox = img.getbbox()
 pad = 8
 bbox = (max(bbox[0] - pad, 0), max(bbox[1] - pad, 0), min(bbox[2] + pad, W), min(bbox[3] + pad, H))
 img = img.crop(bbox)
-img.save(OUT, 'WEBP', quality=86, method=6, alpha_quality=90)
 print('crop', bbox, img.size)
+save_webp(img, OUT)

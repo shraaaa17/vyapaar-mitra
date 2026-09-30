@@ -49,10 +49,10 @@ export function SegmentedChoice<T extends string>({
               key={option.value}
               className={cn(
                 'relative flex min-h-12 cursor-pointer items-center justify-center gap-1.5 rounded-2xl px-2 py-2 text-center text-sm leading-tight font-semibold transition-all duration-200',
-                'has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-paytm-cyan',
+                'has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-paytm-blue-600',
                 checked
-                  ? 'bg-white text-paytm-blue [box-shadow:var(--clay-shadow-soft)]'
-                  : 'text-slate hover:text-paytm-blue',
+                  ? 'bg-paytm-blue text-white [box-shadow:var(--clay-shadow-blue)]'
+                  : 'text-slate hover:bg-white/70 hover:text-paytm-blue',
                 disabled && 'cursor-not-allowed opacity-60',
               )}
             >
