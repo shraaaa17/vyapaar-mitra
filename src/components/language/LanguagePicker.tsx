@@ -29,64 +29,66 @@ export function LanguagePicker({
   return (
     <fieldset className="min-w-0">
       <legend className={cn(hideLegend ? 'sr-only' : 'mb-3 text-lg font-semibold text-paytm-blue')}>{legend}</legend>
-      <div className="grid gap-3 sm:grid-cols-2">
-        {LANGUAGES.map((language) => {
-          const checked = language.code === value
-          const speaking = speakingId === language.code
-          return (
-            <div key={language.code} className="relative">
-              <label
-                className={cn(
-                  'flex min-h-[120px] cursor-pointer flex-col gap-1 rounded-clay bg-white p-4 pr-16 transition-all duration-200',
-                  'has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-3 has-[:focus-visible]:outline-paytm-blue-600',
-                  checked
-                    ? 'ring-3 ring-paytm-blue-600 [box-shadow:var(--clay-shadow-raised)]'
-                    : '[box-shadow:var(--clay-shadow-soft)] hover:[box-shadow:var(--clay-shadow-raised)]',
-                )}
-              >
-                <input
-                  type="radio"
-                  name={name}
-                  value={language.code}
-                  checked={checked}
-                  onChange={() => onChange(language.code)}
-                  className="sr-only"
-                />
-                <span lang={language.htmlLang} className="text-xl leading-tight font-semibold text-paytm-blue">
-                  {language.nativeName}
-                </span>
-                {language.englishName !== language.nativeName && (
-                  <span lang="en" className="text-sm text-slate-soft">
-                    {language.englishName}
-                  </span>
-                )}
-                <span lang={language.htmlLang} className="mt-1 text-[15px] text-slate">
-                  {language.sample}
-                </span>
-                <span
-                  aria-hidden
+      <div className="@container">
+        <div className="grid gap-3 @lg:grid-cols-2">
+          {LANGUAGES.map((language) => {
+            const checked = language.code === value
+            const speaking = speakingId === language.code
+            return (
+              <div key={language.code} className="relative">
+                <label
                   className={cn(
-                    'absolute top-4 right-4 flex size-7 items-center justify-center rounded-full transition-all',
-                    checked ? 'bg-paytm-blue text-white' : 'bg-cloud text-transparent [box-shadow:var(--clay-shadow-inset)]',
+                    'flex min-h-[120px] cursor-pointer flex-col gap-1 rounded-clay bg-white p-4 pr-16 transition-all duration-200',
+                    'has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-3 has-[:focus-visible]:outline-paytm-blue-600',
+                    checked
+                      ? 'ring-3 ring-paytm-blue-600 [box-shadow:var(--clay-shadow-raised)]'
+                      : '[box-shadow:var(--clay-shadow-soft)] hover:[box-shadow:var(--clay-shadow-raised)]',
                   )}
                 >
-                  <Check className="size-4" strokeWidth={3} />
-                </span>
-              </label>
-              {supported && (
-                <button
-                  type="button"
-                  onClick={() => (speaking ? stop() : speak(language.sample, language.code, language.code))}
-                  aria-label={speaking ? t('onboarding.stopListening') : t('onboarding.listenTo', { language: language.nativeName })}
-                  aria-pressed={speaking}
-                  className="absolute right-2 bottom-2 flex size-12 items-center justify-center rounded-full text-paytm-cyan-ink transition-colors hover:bg-sky-wash"
-                >
-                  {speaking ? <Square className="size-4 fill-current" /> : <Volume2 className="size-5" />}
-                </button>
-              )}
-            </div>
-          )
-        })}
+                  <input
+                    type="radio"
+                    name={name}
+                    value={language.code}
+                    checked={checked}
+                    onChange={() => onChange(language.code)}
+                    className="sr-only"
+                  />
+                  <span lang={language.htmlLang} className="text-xl leading-tight font-semibold text-paytm-blue">
+                    {language.nativeName}
+                  </span>
+                  {language.englishName !== language.nativeName && (
+                    <span lang="en" className="text-sm text-slate-soft">
+                      {language.englishName}
+                    </span>
+                  )}
+                  <span lang={language.htmlLang} className="mt-1 text-[15px] text-slate">
+                    {language.sample}
+                  </span>
+                  <span
+                    aria-hidden
+                    className={cn(
+                      'absolute top-4 right-4 flex size-7 items-center justify-center rounded-full transition-all',
+                      checked ? 'bg-paytm-blue text-white' : 'bg-cloud text-transparent [box-shadow:var(--clay-shadow-inset)]',
+                    )}
+                  >
+                    <Check className="size-4" strokeWidth={3} />
+                  </span>
+                </label>
+                {supported && (
+                  <button
+                    type="button"
+                    onClick={() => (speaking ? stop() : speak(language.sample, language.code, language.code))}
+                    aria-label={speaking ? t('onboarding.stopListening') : t('onboarding.listenTo', { language: language.nativeName })}
+                    aria-pressed={speaking}
+                    className="absolute right-2 bottom-2 flex size-12 items-center justify-center rounded-full text-paytm-cyan-ink transition-colors hover:bg-sky-wash"
+                  >
+                    {speaking ? <Square className="size-4 fill-current" /> : <Volume2 className="size-5" />}
+                  </button>
+                )}
+              </div>
+            )
+          })}
+        </div>
       </div>
     </fieldset>
   )

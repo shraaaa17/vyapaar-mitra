@@ -103,7 +103,7 @@ export function LoginOtp({ pending }: { pending: PendingOtp }) {
             label={t('auth.otpLabel')}
             invalid={!!error}
             describedBy={error ? `${errorId} ${hintId}` : hintId}
-            disabled={verify.isPending}
+            busy={verify.isPending}
             autoFocus
           />
           {error && (
@@ -127,7 +127,7 @@ export function LoginOtp({ pending }: { pending: PendingOtp }) {
         </form>
         <div className="flex min-h-12 items-center justify-center text-sm">
           {secondsLeft > 0 ? (
-            <p className="text-slate tabular-nums">{t('auth.resendIn', { seconds: secondsLeft })}</p>
+            <p className="text-center text-slate tabular-nums">{t('auth.resendIn', { seconds: secondsLeft })}</p>
           ) : (
             <ClayButton variant="ghost" size="sm" onClick={() => resend.mutate({ phone: pending.phone })} disabled={resend.isPending}>
               {t('auth.resend')}

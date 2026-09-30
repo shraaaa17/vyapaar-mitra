@@ -180,9 +180,9 @@ function StepScene({ step }: { step: (typeof STEPS)[number] }) {
 
   if (step === 'language') {
     return (
-      <div className="relative">
-        <MitraHero className="mx-auto h-[min(56vh,460px)]" />
-        <div className="absolute top-[2%] left-[55%] max-w-[220px] rounded-3xl rounded-bl-md bg-white px-4 py-3 [box-shadow:var(--clay-shadow-soft)]">
+      // Bubble above and to the right, so it points at Mitra without covering his face.
+      <div className="flex flex-col items-center gap-2">
+        <div className="max-w-[250px] self-end rounded-3xl rounded-bl-md bg-white px-4 py-3 [box-shadow:var(--clay-shadow-soft)] lg:mr-[4%]">
           <p className="text-xs font-semibold text-slate-soft">{t('onboarding.greetingPreview')}</p>
           <p lang={option.htmlLang} className="mt-1 font-semibold text-paytm-blue">
             {option.sample}
@@ -199,6 +199,7 @@ function StepScene({ step }: { step: (typeof STEPS)[number] }) {
             </button>
           )}
         </div>
+        <MitraHero className="h-[min(50vh,400px)]" />
       </div>
     )
   }

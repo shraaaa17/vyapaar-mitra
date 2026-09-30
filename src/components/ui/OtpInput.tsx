@@ -9,7 +9,8 @@ export type OtpInputProps = {
   label: string
   invalid?: boolean
   describedBy?: string
-  disabled?: boolean
+  /** While checking: the field keeps focus (so the merchant can retype at once) but ignores input. */
+  busy?: boolean
   autoFocus?: boolean
 }
 
@@ -19,7 +20,7 @@ export type OtpInputProps = {
  * work without any per-box focus juggling.
  */
 export const OtpInput = forwardRef<HTMLInputElement, OtpInputProps>(function OtpInput(
-  { value, onChange, length = 6, label, invalid, describedBy, disabled, autoFocus },
+  { value, onChange, length = 6, label, invalid, describedBy, busy, autoFocus },
   ref,
 ) {
   const [focused, setFocused] = useState(false)
@@ -35,7 +36,8 @@ export const OtpInput = forwardRef<HTMLInputElement, OtpInputProps>(function Otp
         pattern="\d*"
         maxLength={length}
         value={value}
-        disabled={disabled}
+        readOnly={busy}
+        aria-busy={busy || undefined}
         autoFocus={autoFocus}
         aria-label={label}
         aria-invalid={invalid || undefined}
@@ -43,8 +45,9 @@ export const OtpInput = forwardRef<HTMLInputElement, OtpInputProps>(function Otp
         onChange={(e) => onChange(e.target.value.replace(/\D/g, '').slice(0, length))}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
-        // Transparent text and caret: the boxes below are the visible field.
-        className="absolute inset-0 z-10 h-full w-full cursor-text bg-transparent text-transparent caret-transparent opacity-100 outline-none selection:bg-transparent"
+        // Transparent text and caret: the boxes below are the visible field, and
+        // the active box carries the focus ring.
+        className="absolute inset-0 z-10 h-full w-full cursor-text bg-transparent text-transparent caret-transparent opacity-100 shadow-none outline-none selection:bg-transparent"
       />
       <div aria-hidden className="grid gap-2 sm:gap-3" style={{ gridTemplateColumns: `repeat(${length}, minmax(0, 1fr))` }}>
         {Array.from({ length }, (_, i) => {
@@ -57,7 +60,7 @@ export const OtpInput = forwardRef<HTMLInputElement, OtpInputProps>(function Otp
                 'clay-inset flex h-14 items-center justify-center rounded-2xl text-2xl font-semibold text-paytm-blue tabular-nums transition-shadow sm:h-16',
                 isActive && 'ring-3 ring-paytm-blue-600',
                 invalid && !isActive && 'ring-2 ring-danger',
-                disabled && 'opacity-60',
+                busy && 'opacity-60',
               )}
             >
               {digit ?? (isActive ? <span className="h-7 w-0.5 animate-pulse rounded-full bg-paytm-cyan-600" /> : '')}

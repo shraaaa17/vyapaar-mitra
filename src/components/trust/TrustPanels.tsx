@@ -1,4 +1,5 @@
 import { RotateCcw } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CONTROLLABLE_ACTIONS, RECOMMENDED_TRUST, sameTrust } from '../../lib/trust'
 import type { TrustSettings } from '../../mocks/types'
@@ -11,8 +12,18 @@ import { UndoWindowChoice } from './UndoWindowChoice'
 type PanelProps = {
   value: TrustSettings
   onChange: (next: TrustSettings) => void
-  /** Grid columns on wide screens (Settings uses two). */
+  /** Two columns once the panel itself is wide enough (Settings); onboarding keeps one. */
   columns?: 1 | 2
+}
+
+function PanelGrid({ columns = 1, children }: { columns?: 1 | 2; children: ReactNode }) {
+  if (columns === 1) return <div className="flex flex-col gap-4">{children}</div>
+  // Sized by the panel's own width, not the viewport, since the sidebar eats into it.
+  return (
+    <div className="@container">
+      <div className="grid gap-4 @3xl:grid-cols-2">{children}</div>
+    </div>
+  )
 }
 
 /**
@@ -21,7 +32,7 @@ type PanelProps = {
  */
 export function TrustModesPanel({ value, onChange, columns = 1 }: PanelProps) {
   return (
-    <div className={columns === 2 ? 'grid gap-4 lg:grid-cols-2' : 'flex flex-col gap-4'}>
+    <PanelGrid columns={columns}>
       {CONTROLLABLE_ACTIONS.map((action) => (
         <TrustActionCard
           key={action}
@@ -31,20 +42,20 @@ export function TrustModesPanel({ value, onChange, columns = 1 }: PanelProps) {
         />
       ))}
       <LoanLockedCard />
-    </div>
+    </PanelGrid>
   )
 }
 
 export function SafetyLimitsPanel({ value, onChange, columns = 1 }: PanelProps) {
   return (
-    <div className={columns === 2 ? 'grid gap-4 lg:grid-cols-2' : 'flex flex-col gap-4'}>
+    <PanelGrid columns={columns}>
       <ClayCard padding="md" elevation="soft">
         <SpendCapStepper value={value.campaignSpendCap} onChange={(campaignSpendCap) => onChange({ ...value, campaignSpendCap })} />
       </ClayCard>
       <ClayCard padding="md" elevation="soft">
         <UndoWindowChoice value={value.undoWindowMinutes} onChange={(undoWindowMinutes) => onChange({ ...value, undoWindowMinutes })} />
       </ClayCard>
-    </div>
+    </PanelGrid>
   )
 }
 

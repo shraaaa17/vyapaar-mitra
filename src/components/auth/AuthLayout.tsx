@@ -26,24 +26,29 @@ export function AuthLayout({ bubble, children }: { bubble: string; children: Rea
 
       <main
         id="main"
-        className="mx-auto grid w-full max-w-[1160px] flex-1 content-center gap-3 px-4 pt-2 pb-6 md:grid-cols-[minmax(0,1fr)_minmax(0,440px)] md:items-center md:gap-10 md:px-8 lg:gap-16"
+        className="mx-auto grid w-full max-w-[1160px] flex-1 grid-cols-1 content-center gap-3 px-4 pt-2 pb-6 md:grid-cols-[minmax(0,1fr)_minmax(0,440px)] md:items-center md:gap-10 md:px-8 lg:gap-16"
       >
         <section className="relative flex items-end gap-2 md:flex-col md:items-center md:gap-6">
           {/* Soft stage behind Mitra (wide screens) */}
           <div aria-hidden className="pointer-events-none absolute inset-x-[6%] top-[4%] bottom-[22%] hidden rounded-full bg-[radial-gradient(closest-side,#d6f3fd,rgb(214_243_253/0))] md:block" />
-          <FloatingOrb size="md" float className="absolute top-[6%] left-[4%] hidden opacity-80 lg:inline-flex" />
-          <FloatingOrb size="sm" float pulse={false} className="absolute top-[36%] right-[6%] hidden [animation-delay:-3s] lg:inline-flex" />
+          <div aria-hidden className="pointer-events-none absolute inset-0 hidden lg:block">
+            <span className="absolute top-[8%] left-[6%]">
+              <FloatingOrb size="md" float className="opacity-80" />
+            </span>
+            <span className="absolute top-[40%] right-[4%]">
+              <FloatingOrb size="sm" float pulse={false} className="[animation-delay:-3s]" />
+            </span>
+          </div>
 
-          <div className="relative w-full md:max-w-[520px]">
-            <div className="flex items-end gap-1 md:block">
-              <MitraHero className="h-[168px] shrink-0 sm:h-[200px] md:mx-auto md:h-[min(52vh,470px)]" />
-              <p
-                className="relative mb-auto ml-1 rounded-3xl rounded-bl-md bg-white px-4 py-3 text-[15px] leading-snug font-semibold text-paytm-blue [box-shadow:var(--clay-shadow-soft)] md:absolute md:top-[4%] md:left-[60%] md:mb-0 md:ml-0 md:max-w-[240px] md:text-base lg:left-[62%]"
-                aria-live="polite"
-              >
-                {bubble}
-              </p>
-            </div>
+          {/* Phones: small Mitra with the bubble beside him. Wider: bubble above, pointing down at him. */}
+          <div className="relative flex w-full items-end gap-1 md:max-w-[440px] md:flex-col-reverse md:items-center md:gap-2">
+            <MitraHero className="h-[168px] shrink-0 sm:h-[200px] md:h-[min(46vh,420px)]" />
+            <p
+              className="relative mb-auto ml-1 min-w-0 rounded-3xl rounded-bl-md bg-white px-4 py-3 text-[15px] leading-snug font-semibold text-paytm-blue [box-shadow:var(--clay-shadow-soft)] md:mb-0 md:ml-0 md:max-w-[260px] md:self-end md:text-base"
+              aria-live="polite"
+            >
+              {bubble}
+            </p>
           </div>
 
           <ul className="hidden w-full max-w-[460px] flex-col gap-2.5 lg:flex">
