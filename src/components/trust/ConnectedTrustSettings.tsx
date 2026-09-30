@@ -1,69 +1,59 @@
 import { Check, CloudOff, Loader2 } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useTrustSettings, useUpdateTrustSettings } from '../../hooks/queries'
+import type { TrustAutosave, TrustSection } from '../../hooks/useTrustAutosave'
 import { RECOMMENDED_TRUST } from '../../lib/trust'
-import type { TrustSettings } from '../../mocks/types'
 import { ClayButton, ErrorState, Skeleton } from '../ui'
 import { ResetTrustButton, SafetyLimitsPanel, TrustModesPanel } from './TrustPanels'
 
-const SAVE_DELAY_MS = 500
-
 /**
- * Trust Settings wired to the API for the Settings screen: every change is
- * saved on its own (quick taps on the spend cap are batched), with a small
- * status line so the merchant knows it stuck.
+ * One section of the connected Trust Settings. The save status shows beside
+ * the section that was just changed; screen readers hear it once, through the
+ * page's single status region (see Settings).
  */
-export function ConnectedTrustSettings({ section }: { section: 'modes' | 'limits' }) {
+export function ConnectedTrustSettings({ trust, section }: { trust: TrustAutosave; section: TrustSection }) {
   const { t } = useTranslation()
-  const { data, isPending, isError, refetch } = useTrustSettings()
-  const save = useUpdateTrustSettings()
-  const [draft, setDraft] = useState<TrustSettings | null>(null)
-  const timer = useRef<number | undefined>(undefined)
-  const value = draft ?? data
+  const { query, value, change, status, lastSection } = trust
 
-  useEffect(() => () => window.clearTimeout(timer.current), [])
-
-  if (isError) return <ErrorState onRetry={() => refetch()} />
-  if (isPending || !value) return <Skeleton className="h-64 rounded-clay" />
-
-  const change = (next: TrustSettings) => {
-    setDraft(next)
-    window.clearTimeout(timer.current)
-    timer.current = window.setTimeout(() => save.mutate(next, { onSettled: () => setDraft(null) }), SAVE_DELAY_MS)
-  }
+  if (query.isError) return <ErrorState onRetry={() => query.refetch()} />
+  if (query.isPending || !value) return <Skeleton className="h-64 rounded-clay" />
 
   const Panel = section === 'modes' ? TrustModesPanel : SafetyLimitsPanel
-  const status = save.isPending || draft ? 'saving' : save.isError ? 'failed' : save.isSuccess ? 'saved' : null
+  const shownStatus = lastSection === section ? status : null
 
   return (
     <div className="flex flex-col gap-4">
-      <Panel value={value} onChange={change} columns={2} />
+      <Panel value={value} onChange={(next) => change(next, section)} columns={2} />
       <div className="flex min-h-12 flex-wrap items-center justify-between gap-3">
-        <ResetTrustButton value={value} onReset={() => change(RECOMMENDED_TRUST)} />
-        <p role="status" className="ml-auto flex items-center gap-2 text-sm font-medium">
-          {status === 'saving' && (
+        {section === 'modes' && <ResetTrustButton value={value} onReset={() => change(RECOMMENDED_TRUST, section)} />}
+        <div className="ml-auto flex items-center gap-2 text-sm font-medium">
+          {shownStatus === 'saving' && (
             <>
               <Loader2 aria-hidden className="size-4 animate-spin text-slate-soft" />
-              <span className="text-slate">{t('trust.saving')}</span>
+              <span aria-hidden className="text-slate">
+                {t('trust.saving')}
+              </span>
             </>
           )}
-          {status === 'saved' && (
+          {shownStatus === 'saved' && (
             <>
               <Check aria-hidden className="size-4 text-success-ink" />
-              <span className="text-success-ink">{t('trust.saved')}</span>
+              <span aria-hidden className="text-success-ink">
+                {t('trust.saved')}
+              </span>
             </>
           )}
-          {status === 'failed' && (
+          {shownStatus === 'failed' && (
             <>
               <CloudOff aria-hidden className="size-4 text-danger" />
-              <span className="text-danger">{t('trust.saveFailed')}</span>
-              <ClayButton variant="ghost" size="sm" onClick={() => change(value)}>
+              <span aria-hidden className="text-danger">
+                {t('trust.saveFailed')}
+              </span>
+              <ClayButton variant="ghost" size="sm" onClick={() => change(value, section)}>
                 {t('trust.retry')}
               </ClayButton>
             </>
           )}
-        </p>
+        </div>
       </div>
     </div>
   )

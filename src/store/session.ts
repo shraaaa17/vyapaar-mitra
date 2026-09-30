@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { LanguageCode } from '../mocks/types'
+import { useOnboardingDraft } from './onboarding'
 
 export type PendingOtp = {
   phone: string
@@ -48,7 +49,11 @@ export const useSession = create<SessionState>()(
         })),
       setLanguage: (language) => set({ language }),
       // Language stays: it belongs to the device, not the session.
-      signOut: () => set({ signedIn: false, phone: null, pendingOtp: null }),
+      signOut: () => {
+        // Language and which numbers finished onboarding stay on this device.
+        useOnboardingDraft.getState().reset()
+        set({ signedIn: false, phone: null, pendingOtp: null })
+      },
     }),
     {
       name: 'vm-session-v1',

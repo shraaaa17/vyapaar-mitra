@@ -216,11 +216,9 @@
   /* Devanagari needs no tracking and a taller line. :lang(hi) also matches
      hi-Latn (Hinglish), which is Latin script, so it is excluded. */
   :is(:lang(hi), :lang(mr)):not(:lang(hi-Latn)) {
-    letter-spacing: 0;
     line-height: 1.75;
   }
   :is(:lang(hi), :lang(mr)):not(:lang(hi-Latn)) :is(h1, h2, h3, h4) {
-    letter-spacing: 0;
     line-height: 1.35;
   }
 
@@ -259,4 +257,13 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+}
+
+/*
+ * Devanagari never gets the negative tracking used on Latin headings: it
+ * pushes matras into the next letter. Unlayered so it beats tracking-*
+ * utilities; Latin text inside (lang="en" or "hi-Latn") keeps its tracking.
+ */
+:is(:lang(hi), :lang(mr)):not(:lang(hi-Latn)) {
+  letter-spacing: 0;
 }

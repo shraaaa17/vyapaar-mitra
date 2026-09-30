@@ -6,6 +6,7 @@ import { PageHeader } from '../components/layout/PageHeader'
 import { LanguagePicker } from '../components/language/LanguagePicker'
 import { ConnectedTrustSettings } from '../components/trust'
 import { ClayButton } from '../components/ui'
+import { useTrustAutosave } from '../hooks/useTrustAutosave'
 import { useSession } from '../store/session'
 
 function Section({ id, title, subtitle, children }: { id: string; title: string; subtitle?: string; children: ReactNode }) {
@@ -28,6 +29,7 @@ export function Settings() {
   const setLanguage = useSession((s) => s.setLanguage)
   const phone = useSession((s) => s.phone)
   const signOut = useSession((s) => s.signOut)
+  const trust = useTrustAutosave()
 
   return (
     <>
@@ -37,10 +39,13 @@ export function Settings() {
           <LanguagePicker value={language} onChange={setLanguage} legend={t('pages.settings.language')} />
         </Section>
         <Section id="settings-trust" title={t('pages.settings.trust')} subtitle={t('pages.settings.trustSubtitle')}>
-          <ConnectedTrustSettings section="modes" />
+          <ConnectedTrustSettings trust={trust} section="modes" />
         </Section>
         <Section id="settings-limits" title={t('pages.settings.limits')}>
-          <ConnectedTrustSettings section="limits" />
+          <ConnectedTrustSettings trust={trust} section="limits" />
+          <p role="status" className="sr-only">
+            {trust.statusText}
+          </p>
         </Section>
         <ComingNext phase={9} items={[t('pages.settings.next1'), t('pages.settings.next2')]} />
         <Section id="settings-account" title={t('pages.settings.account')}>

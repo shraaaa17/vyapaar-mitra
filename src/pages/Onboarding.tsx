@@ -1,5 +1,5 @@
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
-import { ArrowLeft, ArrowRight, Check, Volume2 } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -10,7 +10,6 @@ import { ClayButton, ClayCard, Logo } from '../components/ui'
 import { useMerchant, useUpdateTrustSettings } from '../hooks/queries'
 import { getLanguage } from '../i18n/languages'
 import { cn } from '../lib/cn'
-import { useSpeech } from '../lib/speech'
 import { RECOMMENDED_TRUST } from '../lib/trust'
 import { useOnboardingDraft } from '../store/onboarding'
 import { useSession } from '../store/session'
@@ -175,7 +174,6 @@ function StepBody({ step }: { step: (typeof STEPS)[number] }) {
 function StepScene({ step }: { step: (typeof STEPS)[number] }) {
   const { t } = useTranslation()
   const language = useSession((s) => s.language)
-  const { supported, speakingId, speak, stop } = useSpeech()
   const option = getLanguage(language)
 
   if (step === 'language') {
@@ -187,17 +185,6 @@ function StepScene({ step }: { step: (typeof STEPS)[number] }) {
           <p lang={option.htmlLang} className="mt-1 font-semibold text-paytm-blue">
             {option.sample}
           </p>
-          {supported && (
-            <button
-              type="button"
-              tabIndex={-1}
-              onClick={() => (speakingId ? stop() : speak(option.sample, language, 'preview'))}
-              className="mt-1 inline-flex items-center gap-1.5 text-sm font-semibold text-paytm-cyan-ink"
-            >
-              <Volume2 className="size-4" />
-              {speakingId ? t('onboarding.stopListening') : t('onboarding.listen')}
-            </button>
-          )}
         </div>
         <MitraHero className="h-[min(50vh,400px)]" />
       </div>

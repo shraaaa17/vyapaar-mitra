@@ -1,3 +1,4 @@
+import { RECOMMENDED_TRUST } from '../lib/trust'
 import type {
   AgentAction,
   Campaign,
@@ -27,8 +28,8 @@ export const STORY = {
   afterSales: 10_900,
   upliftPct: 30,
   cashCrunchInDays: 6,
-  spendCap: 600,
-  undoWindowMinutes: 30,
+  spendCap: RECOMMENDED_TRUST.campaignSpendCap,
+  undoWindowMinutes: RECOMMENDED_TRUST.undoWindowMinutes,
 } as const
 
 export const merchant: Merchant = {
@@ -40,11 +41,8 @@ export const merchant: Merchant = {
   phoneMasked: '+91 98•• ••4821',
 }
 
-export const defaultTrustSettings: TrustSettings = {
-  modes: { marketing: 'auto', pricing: 'ask', reorder: 'ask', loan: 'recommend_only' },
-  campaignSpendCap: STORY.spendCap,
-  undoWindowMinutes: STORY.undoWindowMinutes,
-}
+/** A new merchant starts on Mitra's suggested settings (the same ones onboarding preselects). */
+export const defaultTrustSettings: TrustSettings = RECOMMENDED_TRUST
 
 /** Standard reducing-balance EMI, rounded to the rupee. */
 export function calculateEmi(principal: number, ratePa: number, months: number) {
