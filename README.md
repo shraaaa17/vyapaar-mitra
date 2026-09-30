@@ -4,9 +4,11 @@
 
 It's a concept prototype and not an official Paytm product. All merchant data shown is mock data.
 
+The app is the merchant's own copilot. Ramesh signs in and uses it on his phone or the shop-counter laptop.
+
 ## Stack
 
-React 19 · TypeScript · Vite · Tailwind CSS v4 · Framer Motion · Lucide React · Poppins (self-hosted via `@fontsource/poppins`)
+React 19 · TypeScript · Vite · Tailwind CSS v4 · React Router · Zustand · TanStack Query · Recharts · Framer Motion · Lucide React · react-i18next · Poppins (self-hosted via `@fontsource/poppins`, includes Devanagari)
 
 ## Scripts
 
@@ -34,18 +36,46 @@ The tokens live in `src/index.css`, inside the `@theme` block.
 
 The primitives live in `src/components/ui/`: `ClayButton`, `ClayCard`, `ClaySwitch`, `FloatingOrb`, `IconBubble`, `Badge`, `RiskBadge`, `MetricCard`, `InsightCard`, `SectionHeading`, `Container` and `Logo`.
 
+An internal reference page for the design system lives at `/design-system`.
+
+## App structure
+
+```
+src/
+  pages/            Login, Onboarding, Home, Actions, Campaigns, Regulars, Credit, Impact, AskMitra, Settings
+  components/
+    ui/             clay primitives
+    layout/         AppShell, Sidebar (≥768px), BottomTabs + MoreSheet (<768px), route guards
+  mocks/            types.ts (API contract), seed.ts (Ramesh story), server.ts (mock routes)
+  lib/api.ts        typed API client (mock or real backend)
+  hooks/queries.ts  TanStack Query hooks and mutations
+  store/            Zustand: session + preferences (persisted), shell UI state
+```
+
+## API
+
+With no `VITE_API_BASE_URL` set, every request is served in the browser by `src/mocks/server.ts`, with 300–900 ms of simulated latency. Mock state is saved to `localStorage`, so approvals and undos survive a refresh. To point at the real backend, set `VITE_API_BASE_URL=https://…` in `.env.local`.
+
+| Method | Path | Used for |
+|---|---|---|
+| POST | `/agent/query` | Ask Mitra answers (text + small card) |
+| GET | `/agent/insights` | Morning briefing and ranked insights |
+| GET | `/agent/actions` | Action Center |
+| POST | `/agent/action/approve` | Approve / reject / pause / resume / undo (`{ actionId, decision, edits? }`) |
+| PUT | `/agent/settings/trust` | Save trust settings (loans are always forced to `recommend_only`) |
+| GET | `/agent/outcomes` | Impact and learning |
+| GET | `/agent/cashflow` | 14-day cashflow forecast |
+
+The mock also serves these helpers, which are **not** in the documented backend API: `GET /agent/settings/trust`, `GET /agent/campaigns`, `GET /agent/regulars` and `GET /merchant/profile`.
+
 ## Build phases
 
-1. ✅ Design system: tokens, type, clay system, buttons/cards, navigation
-2. Landing page
-3. Application shell + dashboard
-4. Agent experience
-5. POS + Soundbox
-6. Insights, campaigns, customers, sales
-7. Responsive/mobile pass
-8. Animation and micro-interactions
-9. Full QA
-
-## Backend API
-
-The backend is separate. The documented endpoints are `POST /agent/query`, `GET /agent/insights` and `POST /agent/action/approve`. Until the request/response shapes are wired in, the UI runs on mock data.
+1. ✅ Setup, design tokens, responsive shell, routing, store, mock API + seed data
+2. Login, onboarding, Trust Settings, i18n
+3. Home briefing, insight cards, read-aloud
+4. Action Center, Why panel, approve/undo
+5. Campaigns + Regulars
+6. Credit & Cashflow
+7. Impact / Learning
+8. Ask Mitra (chat + voice)
+9. Settings, polish, loading/empty/error states, accessibility

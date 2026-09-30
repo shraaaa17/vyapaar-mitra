@@ -30,6 +30,16 @@
   --color-success-wash: #e3f7ef;
   --color-caution: #b26a00;
   --color-caution-wash: #fff4e0;
+  --color-danger: #c42b1c;
+  --color-danger-wash: #fdecea;
+
+  /* Risk coding: green low, amber medium, red high */
+  --color-risk-low: var(--color-success);
+  --color-risk-low-wash: var(--color-success-wash);
+  --color-risk-medium: var(--color-caution);
+  --color-risk-medium-wash: var(--color-caution-wash);
+  --color-risk-high: var(--color-danger);
+  --color-risk-high-wash: var(--color-danger-wash);
 
   /* Type */
   --font-sans: 'Poppins', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
