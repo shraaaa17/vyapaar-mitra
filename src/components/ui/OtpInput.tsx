@@ -1,0 +1,70 @@
+import { forwardRef, useState } from 'react'
+import { cn } from '../../lib/cn'
+
+export type OtpInputProps = {
+  value: string
+  onChange: (value: string) => void
+  length?: number
+  /** Accessible name, e.g. "6-digit OTP". */
+  label: string
+  invalid?: boolean
+  describedBy?: string
+  disabled?: boolean
+  autoFocus?: boolean
+}
+
+/**
+ * One real input drawn as separate digit boxes. Keeping a single field means
+ * paste, SMS autofill (autocomplete="one-time-code") and screen readers all
+ * work without any per-box focus juggling.
+ */
+export const OtpInput = forwardRef<HTMLInputElement, OtpInputProps>(function OtpInput(
+  { value, onChange, length = 6, label, invalid, describedBy, disabled, autoFocus },
+  ref,
+) {
+  const [focused, setFocused] = useState(false)
+  const active = Math.min(value.length, length - 1)
+
+  return (
+    <div className="relative">
+      <input
+        ref={ref}
+        type="text"
+        inputMode="numeric"
+        autoComplete="one-time-code"
+        pattern="\d*"
+        maxLength={length}
+        value={value}
+        disabled={disabled}
+        autoFocus={autoFocus}
+        aria-label={label}
+        aria-invalid={invalid || undefined}
+        aria-describedby={describedBy}
+        onChange={(e) => onChange(e.target.value.replace(/\D/g, '').slice(0, length))}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        // Transparent text and caret: the boxes below are the visible field.
+        className="absolute inset-0 z-10 h-full w-full cursor-text bg-transparent text-transparent caret-transparent opacity-100 outline-none selection:bg-transparent"
+      />
+      <div aria-hidden className="grid gap-2 sm:gap-3" style={{ gridTemplateColumns: `repeat(${length}, minmax(0, 1fr))` }}>
+        {Array.from({ length }, (_, i) => {
+          const digit = value[i]
+          const isActive = focused && i === active
+          return (
+            <span
+              key={i}
+              className={cn(
+                'clay-inset flex h-14 items-center justify-center rounded-2xl text-2xl font-semibold text-paytm-blue tabular-nums transition-shadow sm:h-16',
+                isActive && 'ring-3 ring-paytm-cyan',
+                invalid && !isActive && 'ring-2 ring-danger',
+                disabled && 'opacity-60',
+              )}
+            >
+              {digit ?? (isActive ? <span className="h-7 w-0.5 animate-pulse rounded-full bg-paytm-cyan-600" /> : '')}
+            </span>
+          )
+        })}
+      </div>
+    </div>
+  )
+})

@@ -6,6 +6,10 @@ import type {
   CashflowResponse,
   InsightsResponse,
   Merchant,
+  OtpRequest,
+  OtpResponse,
+  OtpVerifyRequest,
+  OtpVerifyResponse,
   OutcomesResponse,
   QueryRequest,
   QueryResponse,
@@ -59,4 +63,6 @@ export const api = {
   getCampaigns: () => request<Campaign[]>('GET', '/agent/campaigns'),
   getRegulars: () => request<RegularsResponse>('GET', '/agent/regulars'),
   getMerchant: () => request<Merchant>('GET', '/merchant/profile'),
+  sendOtp: (payload: OtpRequest) => request<OtpResponse>('POST', '/auth/otp', payload),
+  verifyOtp: (payload: OtpVerifyRequest) => request<OtpVerifyResponse>('POST', '/auth/verify', payload),
 }

@@ -5,8 +5,10 @@ import { cn } from '../../lib/cn'
 import { FloatingOrb } from '../ui/FloatingOrb'
 import { Logo } from '../ui/Logo'
 import { NavBadge } from './NavBadge'
+import { useTranslation } from 'react-i18next'
 
 function SidebarLink({ item, pendingCount }: { item: AppNavItem; pendingCount: number }) {
+  const { t } = useTranslation()
   const Icon = item.icon
   return (
     <NavLink
@@ -31,7 +33,7 @@ function SidebarLink({ item, pendingCount }: { item: AppNavItem; pendingCount: n
           >
             <Icon aria-hidden className="size-[18px]" />
           </span>
-          <span className="flex-1">{item.label}</span>
+          <span className="flex-1">{t(item.labelKey)}</span>
           {item.badge === 'pending' && <NavBadge count={pendingCount} />}
         </>
       )}
@@ -41,6 +43,7 @@ function SidebarLink({ item, pendingCount }: { item: AppNavItem; pendingCount: n
 
 /** Desktop and tablet navigation (≥768px). */
 export function Sidebar() {
+  const { t } = useTranslation()
   const pendingCount = usePendingCount()
   const { data: merchant } = useMerchant()
 
@@ -50,7 +53,7 @@ export function Sidebar() {
         <Logo />
       </div>
 
-      <nav aria-label="Main" className="flex flex-1 flex-col gap-6 overflow-y-auto">
+      <nav aria-label={t('nav.main')} className="flex flex-1 flex-col gap-6 overflow-y-auto">
         <ul className="flex flex-col gap-1.5">
           {primaryNav.map((item) => (
             <li key={item.to}>
@@ -59,7 +62,7 @@ export function Sidebar() {
           ))}
         </ul>
         <div>
-          <p className="px-4 pb-2 text-eyebrow text-slate-soft uppercase">More</p>
+          <p className="px-4 pb-2 text-eyebrow text-slate-soft uppercase">{t('nav.more')}</p>
           <ul className="flex flex-col gap-1.5">
             {moreNav.map((item) => (
               <li key={item.to}>
@@ -75,10 +78,10 @@ export function Sidebar() {
           {merchant?.name.charAt(0) ?? 'R'}
         </span>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-paytm-blue">{merchant?.storeName ?? 'Your store'}</p>
+          <p className="truncate text-sm font-semibold text-paytm-blue">{merchant?.storeName ?? t('shell.yourStore')}</p>
           <p className="truncate text-xs text-slate-soft">{merchant?.id ?? '···'}</p>
         </div>
-        <FloatingOrb size="xs" label="Vyapaar Mitra is watching your store" />
+        <FloatingOrb size="xs" label={t('shell.watching')} />
       </div>
     </aside>
   )

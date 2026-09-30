@@ -9,12 +9,15 @@ import {
   Wallet,
   type LucideIcon,
 } from 'lucide-react'
+import type { en } from '../i18n/locales/en'
+
+type NavKey = `nav.${Exclude<keyof typeof en.nav, 'main' | 'more'>}`
 
 export type AppNavItem = {
   to: string
-  label: string
-  /** Short label for the mobile tab bar. */
-  shortLabel?: string
+  labelKey: NavKey
+  /** Shorter label for the mobile tab bar. */
+  shortLabelKey?: NavKey
   icon: LucideIcon
   /** Shows the pending-approval count. */
   badge?: 'pending'
@@ -22,16 +25,16 @@ export type AppNavItem = {
 
 /** Primary sections: bottom tabs on mobile, top of the sidebar on desktop. */
 export const primaryNav: AppNavItem[] = [
-  { to: '/', label: 'Home', icon: House },
-  { to: '/actions', label: 'Actions', icon: ListChecks, badge: 'pending' },
-  { to: '/campaigns', label: 'Campaigns', icon: Megaphone },
-  { to: '/credit', label: 'Credit & Cashflow', shortLabel: 'Credit', icon: Wallet },
-  { to: '/ask', label: 'Ask Mitra', icon: Sparkles },
+  { to: '/', labelKey: 'nav.home', icon: House },
+  { to: '/actions', labelKey: 'nav.actions', icon: ListChecks, badge: 'pending' },
+  { to: '/campaigns', labelKey: 'nav.campaigns', icon: Megaphone },
+  { to: '/credit', labelKey: 'nav.credit', shortLabelKey: 'nav.creditShort', icon: Wallet },
+  { to: '/ask', labelKey: 'nav.ask', shortLabelKey: 'nav.askShort', icon: Sparkles },
 ]
 
 /** Secondary sections: the "More" sheet on mobile, lower sidebar on desktop. */
 export const moreNav: AppNavItem[] = [
-  { to: '/regulars', label: 'Regulars', icon: Users },
-  { to: '/impact', label: 'Impact', icon: TrendingUp },
-  { to: '/settings', label: 'Settings', icon: Settings },
+  { to: '/regulars', labelKey: 'nav.regulars', icon: Users },
+  { to: '/impact', labelKey: 'nav.impact', icon: TrendingUp },
+  { to: '/settings', labelKey: 'nav.settings', icon: Settings },
 ]

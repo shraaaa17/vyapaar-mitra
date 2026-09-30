@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { NavLink } from 'react-router-dom'
 import { primaryNav } from '../../data/appNav'
 import { usePendingCount } from '../../hooks/queries'
@@ -6,11 +7,12 @@ import { NavBadge } from './NavBadge'
 
 /** Mobile bottom tab bar (<768px). */
 export function BottomTabs() {
+  const { t } = useTranslation()
   const pendingCount = usePendingCount()
 
   return (
     <nav
-      aria-label="Main"
+      aria-label={t('nav.main')}
       className="fixed inset-x-0 bottom-0 z-40 border-t border-frost/70 bg-white pb-[env(safe-area-inset-bottom)] [box-shadow:0_-8px_24px_rgb(0_46_110/0.06)] md:hidden"
     >
       <ul className="mx-auto grid max-w-lg grid-cols-5">
@@ -41,7 +43,7 @@ export function BottomTabs() {
                         <NavBadge count={pendingCount} className="absolute -top-1 -right-1 h-[18px] min-w-[18px] text-[10px]" />
                       )}
                     </span>
-                    <span className={cn(isActive && 'font-semibold')}>{item.shortLabel ?? item.label}</span>
+                    <span className={cn('line-clamp-2 text-center leading-tight', isActive && 'font-semibold')}>{t(item.shortLabelKey ?? item.labelKey)}</span>
                   </>
                 )}
               </NavLink>

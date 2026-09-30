@@ -22,6 +22,12 @@ export type Merchant = {
   phoneMasked: string
 }
 
+/** Mock sign-in (not part of the documented backend API). */
+export type OtpRequest = { phone: string }
+export type OtpResponse = { phoneMasked: string; resendAfterSeconds: number }
+export type OtpVerifyRequest = { phone: string; otp: string }
+export type OtpVerifyResponse = { merchant: Merchant }
+
 export type TrustSettings = {
   modes: Record<Exclude<ActionType, 'loan'>, Exclude<TrustMode, 'recommend_only'>> & {
     /** Loans are locked: the agent can only ever recommend them. */

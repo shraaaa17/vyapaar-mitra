@@ -1,7 +1,9 @@
 import { cn } from '../../lib/cn'
+import { useTranslation } from 'react-i18next'
 
 /** Small count bubble for nav items, e.g. actions awaiting approval. */
 export function NavBadge({ count, className }: { count: number; className?: string }) {
+  const { t } = useTranslation()
   if (count <= 0) return null
   return (
     <span
@@ -10,8 +12,8 @@ export function NavBadge({ count, className }: { count: number; className?: stri
         className,
       )}
     >
-      {count}
-      <span className="sr-only"> waiting for approval</span>
+      <span aria-hidden>{count}</span>
+      <span className="sr-only">{t('shell.pending', { count })}</span>
     </span>
   )
 }

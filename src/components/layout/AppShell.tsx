@@ -3,6 +3,7 @@ import { BottomTabs } from './BottomTabs'
 import { MobileHeader } from './MobileHeader'
 import { MoreSheet } from './MoreSheet'
 import { Sidebar } from './Sidebar'
+import { useTranslation } from 'react-i18next'
 
 /**
  * Signed-in layout. One component tree for every screen size: a sidebar from
@@ -10,6 +11,7 @@ import { Sidebar } from './Sidebar'
  * ~1100px column.
  */
 export function AppShell() {
+  const { t } = useTranslation()
   return (
     <div className="flex min-h-dvh">
       <a
@@ -20,7 +22,7 @@ export function AppShell() {
         }}
         className="sr-only z-[60] rounded-full bg-paytm-blue px-5 py-3 font-semibold text-white focus:not-sr-only focus:fixed focus:top-4 focus:left-4"
       >
-        Skip to content
+        {t('shell.skipToContent')}
       </a>
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">

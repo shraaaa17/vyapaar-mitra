@@ -2,6 +2,10 @@ import { createSeed, merchant, STORY, type MockDatabase } from './seed'
 import type {
   ActionDecisionRequest,
   AgentAction,
+  OtpRequest,
+  OtpResponse,
+  OtpVerifyRequest,
+  OtpVerifyResponse,
   QueryRequest,
   QueryResponse,
   TrustSettings,
@@ -102,6 +106,24 @@ function applyDecision({ actionId, decision, edits }: ActionDecisionRequest): Ag
   return clone(action)
 }
 
+const INDIAN_MOBILE = /^[6-9]\d{9}$/
+
+function maskPhone(phone: string) {
+  return `+91 ${phone.slice(0, 2)}******${phone.slice(-2)}`
+}
+
+/** Mock OTP: any 10-digit Indian mobile gets a code, and any 6 digits verify. */
+function sendOtp({ phone }: OtpRequest): OtpResponse {
+  if (!INDIAN_MOBILE.test(phone)) throw new MockApiError(422, 'Enter a valid 10-digit mobile number')
+  return { phoneMasked: maskPhone(phone), resendAfterSeconds: 30 }
+}
+
+function verifyOtp({ phone, otp }: OtpVerifyRequest): OtpVerifyResponse {
+  if (!INDIAN_MOBILE.test(phone)) throw new MockApiError(422, 'Enter a valid 10-digit mobile number')
+  if (!/^\d{6}$/.test(otp)) throw new MockApiError(422, 'Enter the 6-digit OTP')
+  return { merchant: { ...merchant, phoneMasked: maskPhone(phone) } }
+}
+
 function updateTrust(next: TrustSettings): TrustSettings {
   // Loans can never be switched to auto, whatever the client sends.
   db.trust = { ...next, modes: { ...next.modes, loan: 'recommend_only' } }
@@ -163,6 +185,8 @@ const routes: Record<string, Handler> = {
   'GET /agent/campaigns': () => db.campaigns,
   'GET /agent/regulars': () => db.regulars,
   'GET /merchant/profile': () => merchant,
+  'POST /auth/otp': (body) => sendOtp(body as OtpRequest),
+  'POST /auth/verify': (body) => verifyOtp(body as OtpVerifyRequest),
 }
 
 export async function mockRequest<T>(method: string, path: string, body?: unknown): Promise<T> {

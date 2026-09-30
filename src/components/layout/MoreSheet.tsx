@@ -7,9 +7,11 @@ import { useMerchant } from '../../hooks/queries'
 import { cn } from '../../lib/cn'
 import { useUi } from '../../store/ui'
 import { IconBubble } from '../ui/IconBubble'
+import { useTranslation } from 'react-i18next'
 
 /** Mobile bottom sheet holding the secondary sections. */
 export function MoreSheet() {
+  const { t } = useTranslation()
   const open = useUi((s) => s.moreOpen)
   const setOpen = useUi((s) => s.setMoreOpen)
   const { pathname } = useLocation()
@@ -57,13 +59,13 @@ export function MoreSheet() {
             <div aria-hidden className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-frost" />
             <div className="mb-4 flex items-center justify-between px-1">
               <h2 id="more-sheet-title" className="text-lg font-bold">
-                More
+                {t('nav.more')}
               </h2>
               <button
                 ref={closeRef}
                 type="button"
                 onClick={() => setOpen(false)}
-                aria-label="Close menu"
+                aria-label={t('shell.closeMenu')}
                 className="clay-button inline-flex size-12 items-center justify-center bg-white text-paytm-blue [box-shadow:var(--clay-shadow-soft)]"
               >
                 <X aria-hidden className="size-5" />
@@ -87,7 +89,7 @@ export function MoreSheet() {
                       <IconBubble size="sm">
                         <Icon />
                       </IconBubble>
-                      <span className="flex-1">{item.label}</span>
+                      <span className="flex-1">{t(item.labelKey)}</span>
                       <ChevronRight aria-hidden className="size-5 text-slate-soft" />
                     </NavLink>
                   </li>
