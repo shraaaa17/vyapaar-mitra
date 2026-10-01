@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
+import { safeSessionStorage } from '../lib/storage'
 import { RECOMMENDED_TRUST } from '../lib/trust'
 import type { TrustSettings } from '../mocks/types'
 
@@ -19,6 +20,6 @@ export const useOnboardingDraft = create<{
       setTrust: (trust) => set({ trust }),
       reset: () => set({ trust: RECOMMENDED_TRUST }),
     }),
-    { name: 'vm-onboarding-draft', storage: createJSONStorage(() => sessionStorage) },
+    { name: 'vm-onboarding-draft', storage: createJSONStorage(() => safeSessionStorage) },
   ),
 )

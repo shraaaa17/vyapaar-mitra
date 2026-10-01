@@ -1,59 +1,93 @@
-import { CheckCircle2, History, IndianRupee, Receipt, Sparkles, Sunrise, type LucideIcon } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { History } from 'lucide-react'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useActions } from '../../hooks/queries'
+import { useActions, useCampaigns, useInsights } from '../../hooks/queries'
 import { useNow } from '../../hooks/useNow'
 import { getLanguage } from '../../i18n/languages'
 import { cn } from '../../lib/cn'
-import type { AgentAction } from '../../mocks/types'
-import { useCounter, type CounterEventKind, type Line } from '../../store/counter'
+import type { AgentAction, Campaign, Insight, Payment } from '../../mocks/types'
+import { paymentLine, useCounter, type CounterEvent, type FeedSource } from '../../store/counter'
 import { useSession } from '../../store/session'
-import { ClayButton, ClayCard } from '../ui'
-import { clockTime, lineText } from './lines'
+import { ClayCard } from '../ui'
+import { bodyText, clockTime, lineText } from './lines'
 
-type Kind = CounterEventKind | 'payment'
+type Entry = Omit<CounterEvent, 'id'> & { id: string }
 
-type Entry = {
-  id: string
-  at: number
-  kind: Kind
-  line: Line
-  /** Second line: card or UPI handle and, for returning customers, the visit. */
-  detail?: { instrument: string; source: 'card' | 'upi'; visits?: number }
+/** Each source gets its own edge colour: Soundbox blue, WhatsApp green, Dashboard amber, AI coral. */
+const EDGE: Record<FeedSource, string> = {
+  soundbox: 'border-l-accent',
+  whatsapp: 'border-l-success',
+  dashboard: 'border-l-caution',
+  ai: 'border-l-coral',
 }
 
-const KIND_STYLE: Record<Kind, { icon: LucideIcon; className: string }> = {
-  payment: { icon: IndianRupee, className: 'bg-success-wash text-success-ink' },
-  agent: { icon: Sparkles, className: 'bg-accent-wash text-accent-ink' },
-  decision: { icon: CheckCircle2, className: 'bg-surface-2 text-ink' },
-  bill: { icon: Receipt, className: 'bg-well text-slate' },
-  briefing: { icon: Sunrise, className: 'bg-caution-wash text-caution-ink' },
-}
-
-const SHOWN = 8
+const MAX_ENTRIES = 60
 const DAY_MS = 24 * 60 * 60_000
+const AUTO_STATUSES: AgentAction['status'][] = ['auto_done', 'paused', 'undone']
 
-/** What the agent did on its own, or asked about, as feed lines. */
-function actionEntries(actions: AgentAction[], since: number): Entry[] {
+/** What the Soundbox said for each of today's payments, and the WhatsApp message it led to. */
+function paymentEntries(payments: Payment[]): Entry[] {
+  return payments.flatMap((p): Entry[] => {
+    const at = new Date(p.paidAt).getTime()
+    const said: Entry = { id: `${p.checkoutId}-said`, at, source: 'soundbox', label: { key: 'counter.feed.soundbox' }, body: paymentLine(p) }
+    if (!p.whatsapp) return [said]
+    const sent: Entry = {
+      id: `${p.checkoutId}-wa`,
+      at: at + 1,
+      source: 'whatsapp',
+      label: { key: 'counter.feed.whatsapp', params: { to: p.whatsapp.to } },
+      body: {
+        key: p.whatsapp.kind === 'reward' ? 'counter.lines.whatsappReward' : 'counter.lines.whatsappWelcomeBack',
+        params: { visits: p.visit },
+      },
+    }
+    return [said, sent]
+  })
+}
+
+/** What the agent ran on its own (and the offer it sent), and what it is waiting on. */
+function actionEntries(actions: AgentAction[], campaigns: Campaign[], since: number): Entry[] {
   return actions.flatMap((action): Entry[] => {
-    if (action.executedAt && ['auto_done', 'paused', 'undone'].includes(action.status)) {
+    if (action.executedAt && AUTO_STATUSES.includes(action.status)) {
       const at = new Date(action.executedAt).getTime()
-      return at >= since
-        ? [{ id: `${action.id}-auto`, at, kind: 'agent', line: { key: 'counter.lines.autoDone', params: { type: action.type, cap: action.costCap } } }]
-        : []
+      if (at < since) return []
+      const ran: Entry = {
+        id: `${action.id}-auto`,
+        at,
+        source: 'ai',
+        label: { key: 'counter.feed.autoExecuted' },
+        body: { text: action.title, lang: 'en' },
+      }
+      const campaign = campaigns.find((c) => c.id === action.campaignId)
+      if (!campaign) return [ran]
+      const sent: Entry = {
+        id: `${action.id}-wa`,
+        at: at + 1,
+        source: 'whatsapp',
+        label: { key: 'counter.feed.whatsappRegulars', params: { count: campaign.audience.count } },
+        body: { text: campaign.message, lang: 'hi-Latn' },
+      }
+      return [ran, sent]
     }
     const at = new Date(action.createdAt).getTime()
-    if (at < since || action.status === 'completed') return []
-    const line: Line = action.loan
-      ? { key: 'counter.lines.loanFound', params: { amount: action.loan.amount } }
-      : { key: 'counter.lines.suggested', params: { type: action.type } }
-    return [{ id: `${action.id}-new`, at, kind: 'agent', line }]
+    if (action.status !== 'pending' || at < since) return []
+    return [{ id: `${action.id}-wait`, at, source: 'dashboard', label: { key: 'counter.feed.waiting' }, body: { text: action.title, lang: 'en' } }]
+  })
+}
+
+function insightEntries(insights: Insight[], since: number): Entry[] {
+  return insights.flatMap((insight): Entry[] => {
+    const at = insight.createdAt ? new Date(insight.createdAt).getTime() : 0
+    return at >= since
+      ? [{ id: `${insight.id}-new`, at, source: 'dashboard', label: { key: 'counter.feed.insight' }, body: { text: insight.title, lang: 'en' } }]
+      : []
   })
 }
 
 /**
- * Agent activity, newest first: today's payments (from the shared store),
- * what the agent did or suggested, and the merchant's own decisions.
+ * Agent activity, newest first: what the Soundbox said for each payment, the
+ * WhatsApp messages the agent sent, insights and approvals from the
+ * dashboard, and agent cycles and the merchant's own decisions.
  */
 export function ActivityCard() {
   const { t, i18n } = useTranslation()
@@ -61,23 +95,22 @@ export function ActivityCard() {
   const today = useCounter((s) => s.today)
   const events = useCounter((s) => s.events)
   const { data: actions } = useActions()
-  const [showAll, setShowAll] = useState(false)
+  const { data: campaigns } = useCampaigns()
+  const { data: insights } = useInsights()
   const now = useNow(60_000)
   const locale = getLanguage(language).htmlLang
 
   const entries = useMemo(() => {
-    const payments: Entry[] = (today?.recent ?? []).map((p) => ({
-      id: p.id,
-      at: new Date(p.paidAt).getTime(),
-      kind: 'payment',
-      line: { key: 'counter.lines.paymentIn', params: { amount: p.amount } },
-      detail: { instrument: p.instrumentMasked, source: p.source, visits: p.customer.returning ? p.customer.visits : undefined },
-    }))
-    const fromEvents: Entry[] = events.map((e) => ({ id: e.id, at: e.at, kind: e.kind, line: e.line }))
-    return [...payments, ...fromEvents, ...actionEntries(actions ?? [], now - DAY_MS)].sort((a, b) => b.at - a.at)
-  }, [today, events, actions, now])
-
-  const shown = showAll ? entries : entries.slice(0, SHOWN)
+    const since = now - DAY_MS
+    return [
+      ...paymentEntries(today?.recent ?? []),
+      ...actionEntries(actions ?? [], campaigns ?? [], since),
+      ...insightEntries(insights?.insights ?? [], since),
+      ...events,
+    ]
+      .sort((a, b) => b.at - a.at)
+      .slice(0, MAX_ENTRIES)
+  }, [today, events, actions, campaigns, insights, now])
 
   return (
     <ClayCard as="section" aria-labelledby="activity-title" padding="none">
@@ -94,43 +127,32 @@ export function ActivityCard() {
         {entries.length === 0 ? (
           <p className="rounded-2xl bg-well px-4 py-4 text-slate">{t('counter.activity.empty')}</p>
         ) : (
-          <ol className="flex flex-col">
-            {shown.map((entry, i) => {
-              const { icon: Icon, className } = KIND_STYLE[entry.kind]
-              return (
-                <li key={entry.id} className={cn('flex gap-3 py-3', i > 0 && 'border-t border-line')}>
-                  <time dateTime={new Date(entry.at).toISOString()} className="w-[4.5rem] shrink-0 pt-1.5 text-xs font-medium text-slate-soft tabular-nums">
-                    {clockTime(entry.at, locale)}
-                  </time>
-                  <span aria-hidden className={cn('mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-lg', className)}>
-                    <Icon className="size-4" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className={cn('text-[15px] leading-snug', entry.kind === 'payment' ? 'font-semibold text-ink' : 'text-ink')}>
-                      {lineText(i18n.t, entry.line)}
-                    </p>
-                    {entry.detail && (
-                      <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate">
-                        <span className="tabular-nums">
-                          {t(entry.detail.source === 'card' ? 'counter.bill.sourceCard' : 'counter.bill.sourceUpi')} · {entry.detail.instrument}
-                        </span>
-                        {entry.detail.visits !== undefined && (
-                          <span className="rounded-full bg-coral-wash px-2 py-0.5 text-xs font-semibold text-coral-ink">
-                            {t('counter.activity.returning', { count: entry.detail.visits })}
-                          </span>
-                        )}
-                      </p>
-                    )}
-                  </div>
+          // Scrolls on its own; focusable so the keyboard can scroll it too.
+          <div
+            role="region"
+            aria-label={t('counter.activity.list')}
+            tabIndex={0}
+            className="-mx-1 max-h-[300px] overflow-y-auto overscroll-contain rounded-2xl px-1 py-1"
+          >
+            <ol className="flex flex-col gap-2">
+              {entries.map((entry) => (
+                <li key={entry.id} className={cn('rounded-2xl border-l-4 bg-well py-2.5 pr-3 pl-3.5', EDGE[entry.source])}>
+                  <p className="text-xs font-semibold tracking-[0.08em] text-slate uppercase">
+                    {lineText(i18n.t, entry.label)}
+                    <span aria-hidden className="px-1.5">
+                      ·
+                    </span>
+                    <time dateTime={new Date(entry.at).toISOString()} className="tabular-nums">
+                      {clockTime(entry.at, locale)}
+                    </time>
+                  </p>
+                  <p lang={'lang' in entry.body ? entry.body.lang : undefined} className="mt-0.5 text-[15px] leading-snug text-ink">
+                    {bodyText(i18n.t, entry.body)}
+                  </p>
                 </li>
-              )
-            })}
-          </ol>
-        )}
-        {entries.length > SHOWN && (
-          <ClayButton variant="ghost" size="sm" onClick={() => setShowAll((v) => !v)} aria-expanded={showAll} className="mt-2">
-            {showAll ? t('counter.activity.showLess') : t('counter.activity.showAll', { count: entries.length })}
-          </ClayButton>
+              ))}
+            </ol>
+          </div>
         )}
       </div>
     </ClayCard>

@@ -4,14 +4,15 @@ import type { LanguageCode } from '../mocks/types'
 
 /**
  * Read-aloud with the Web Speech API. Each app language maps to a list of
- * preferred voices (see i18n/languages.ts); the first one the device has wins,
- * otherwise the browser picks its default voice for the first language tag.
+ * preferred voices (see i18n/languages.ts), or the caller passes its own list;
+ * the first one the device has wins, otherwise the browser picks its default
+ * voice for the first language tag.
  */
 
 export const speechSupported = () => typeof window !== 'undefined' && 'speechSynthesis' in window
 
-function pickVoice(code: LanguageCode) {
-  const wanted = getLanguage(code).speechLangs.map((l) => l.toLowerCase())
+function pickVoice(langs: string[]) {
+  const wanted = langs.map((l) => l.toLowerCase())
   const voices = window.speechSynthesis.getVoices()
   const lang = (v: SpeechSynthesisVoice) => v.lang.toLowerCase().replace('_', '-')
   // Every exact match (mr-IN, then hi-IN) beats any looser one (mr-*, hi-*).
@@ -43,14 +44,15 @@ export function useSpeech() {
     setSpeakingId(null)
   }, [supported])
 
-  /** Speaks `text`; `id` lets the caller show which button is playing. */
+  /** Speaks `text`; `id` lets the caller show which button is playing, `langs` overrides the language's voices. */
   const speak = useCallback(
-    (text: string, code: LanguageCode, id = 'default') => {
+    (text: string, code: LanguageCode, id = 'default', langs?: string[]) => {
       if (!supported) return
       window.speechSynthesis.cancel()
       const utterance = new SpeechSynthesisUtterance(text)
-      const voice = pickVoice(code)
-      utterance.lang = voice?.lang ?? getLanguage(code).speechLangs[0]
+      const wanted = langs ?? getLanguage(code).speechLangs
+      const voice = pickVoice(wanted)
+      utterance.lang = voice?.lang ?? wanted[0]
       if (voice) utterance.voice = voice
       utterance.rate = 0.95
       utterance.onend = () => setSpeakingId((current) => (current === id ? null : current))

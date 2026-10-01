@@ -55,7 +55,8 @@ export const AGENT_RUN_MIN_MS = 2_500
 
 /**
  * "Run agent now". A new action from the run goes straight into the shared
- * actions cache, so the approval list and the nav badge update together.
+ * actions cache, so the approval list and the nav badge update together;
+ * insights are refetched for the one the run raised.
  */
 export function useRunAgent(onDone?: (report: AgentRunReport) => void) {
   const client = useQueryClient()
@@ -71,6 +72,7 @@ export function useRunAgent(onDone?: (report: AgentRunReport) => void) {
           current ? [added, ...current.filter((a) => a.id !== added.id)] : current,
         )
       }
+      if (report.insightsCreated > 0) void client.invalidateQueries({ queryKey: queryKeys.insights })
       onDone?.(report)
     },
   })

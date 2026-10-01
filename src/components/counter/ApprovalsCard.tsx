@@ -1,4 +1,4 @@
-import { ArrowRight, BellRing, Landmark, Lock, Megaphone, Package, Pause, Play, Tag, Undo2, type LucideIcon } from 'lucide-react'
+import { ArrowRight, BellRing, Landmark, Megaphone, Package, Pause, Play, Tag, Undo2, type LucideIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
@@ -29,15 +29,13 @@ const RISK_LABEL = {
   high: 'counter.approvals.riskHigh',
 } as const
 
-/** What a confirmed decision adds to the activity feed. */
+/** What a confirmed decision adds to the activity feed, under "You". */
 function decisionLine(action: AgentAction, { decision }: ActionDecisionRequest): Line {
   switch (decision) {
     case 'approve':
-      return action.loan
-        ? { key: 'counter.lines.loanApplied', params: { amount: action.loan.amount } }
-        : { key: 'counter.lines.approved', params: { type: action.type } }
+      return action.loan ? { key: 'counter.lines.loanApplied', params: { amount: action.loan.amount } } : { key: 'counter.lines.approved' }
     case 'reject':
-      return { key: 'counter.lines.rejected', params: { type: action.type } }
+      return { key: 'counter.lines.rejected' }
     case 'pause':
       return { key: 'counter.lines.paused', params: { type: action.type } }
     case 'resume':
@@ -45,6 +43,13 @@ function decisionLine(action: AgentAction, { decision }: ActionDecisionRequest):
     case 'undo':
       return { key: 'counter.lines.undone', params: { type: action.type } }
   }
+}
+
+/** Why a pending action waits for the merchant instead of running on its own. */
+function useWaitReason(action: AgentAction) {
+  const { t } = useTranslation()
+  if (action.whyNotAuto === 'high_stakes' || action.type === 'loan') return t('counter.approvals.whyHighStakes')
+  return t('counter.approvals.whyAsksFirst', { setting: t(`counter.approvals.setting.${action.type}`), mode: t('trust.modeAsk') })
 }
 
 /**
@@ -56,7 +61,9 @@ export function ApprovalsCard() {
   const { t } = useTranslation()
   const { data, isPending, isError, refetch } = useActions()
   const [failedId, setFailedId] = useState<string | null>(null)
-  const decision = useActionDecision((action, request) => useCounter.getState().log('decision', decisionLine(action, request)))
+  const decision = useActionDecision((action, request) =>
+    useCounter.getState().log('ai', { key: 'counter.feed.you' }, decisionLine(action, request)),
+  )
 
   const decide = (request: ActionDecisionRequest) => {
     setFailedId(null)
@@ -178,33 +185,16 @@ function PendingCard({ action, busy, failed, onDecide }: CardProps) {
   const { t } = useTranslation()
   const why = useWhy()
   const [applying, setApplying] = useState(false)
+  const reason = useWaitReason(action)
   const loan = action.loan
 
   return (
     <article className="flex flex-col gap-3 rounded-[22px] border border-line bg-surface p-4">
       <CardHead action={action} />
 
-      <dl className="flex flex-wrap gap-2 text-sm">
-        <div className="rounded-xl bg-success-wash px-3 py-1.5">
-          <dt className="sr-only">{t('counter.approvals.expected')}</dt>
-          <dd lang="en" className="font-medium text-success-ink">
-            {action.expectedImpact.label}
-          </dd>
-        </div>
-        {action.costCap !== undefined && (
-          <div className="rounded-xl bg-well px-3 py-1.5">
-            <dt className="sr-only">{t('counter.approvals.spendCapLabel')}</dt>
-            <dd className="font-medium text-ink">{t('counter.approvals.upTo', { amount: formatINR(action.costCap) })}</dd>
-          </div>
-        )}
-      </dl>
-
-      {loan && (
-        <p className="flex items-center gap-2 rounded-xl bg-accent-wash px-3 py-2 text-sm font-semibold text-ink">
-          <Lock aria-hidden className="size-4 text-accent-ink" />
-          {t('counter.approvals.recommendOnly')}
-        </p>
-      )}
+      <p className="rounded-xl bg-caution-wash px-3 py-2 text-sm text-caution-ink">
+        <span className="font-semibold">{t('counter.approvals.whyWaits')}</span> {reason}
+      </p>
 
       {loan && applying ? (
         <LoanCheck

@@ -1,4 +1,4 @@
-import type { LanguageCode } from './types'
+import type { LanguageCode, PaymentMethod } from './types'
 
 /**
  * What the mock agent says, in each app language. The real backend answers in
@@ -11,8 +11,10 @@ type Day = 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 'Sat' | 'Sun'
 export type Phrasebook = {
   today: (p: { sales: string; payments: number; returning: number }) => string
   todayEmpty: string
-  last: (p: { amount: string; instrument: string; minutes: number; visits: number; returning: boolean }) => string
+  last: (p: { amount: string; method: PaymentMethod; payer: string; minutes: number; visits: number; returning: boolean }) => string
   lastEmpty: string
+  top: (p: { item: string; units: number; next: { item: string; units: number }[] }) => string
+  customers: (p: { total: number; regulars: number; quiet: number; newToday: number }) => string
   regulars: (p: { returning: number; total: number; thisWeek: number }) => string
   dip: (p: { sales: string; pct: number }) => string
   offer: (p: { count: number; redeemed: number; extra: string }) => string
@@ -29,6 +31,9 @@ export type Phrasebook = {
     offerRedeemed: string
     preApproved: string
     loanCaption: (rate: number, months: number) => string
+    topThisWeek: string
+    customersThisMonth: string
+    customersCaption: (regulars: number, newToday: number) => string
     days: Record<Day, string>
   }
 }
@@ -37,9 +42,13 @@ const en: Phrasebook = {
   today: ({ sales, payments, returning }) =>
     `You've taken ${sales} so far today from ${payments} payments. ${returning} of them were returning customers.`,
   todayEmpty: 'No payments yet today. Your first bill will show up here.',
-  last: ({ amount, instrument, minutes, visits, returning }) =>
-    `The last payment was ${amount}, by card ${instrument}, ${minutes < 1 ? 'just now' : `${minutes} min ago`}. ${returning ? `A returning customer on visit ${visits}.` : 'A new customer.'}`,
+  last: ({ amount, method, payer, minutes, visits, returning }) =>
+    `The last payment was ${amount}, by ${method === 'card' ? 'card' : 'UPI'} (${payer}), ${minutes < 1 ? 'just now' : `${minutes} min ago`}. ${returning ? `A returning customer on visit ${visits}.` : 'A new customer.'}`,
   lastEmpty: 'No payments yet today.',
+  top: ({ item, units, next }) =>
+    `${item} sold the most this week: ${units} units. Next: ${next.map((n) => `${n.item} (${n.units})`).join(' and ')}.`,
+  customers: ({ total, regulars, quiet, newToday }) =>
+    `${total} different customers paid you this month. ${regulars} are regulars, ${quiet} of them haven't come this week, and ${newToday} new customers came today.`,
   regulars: ({ returning, total, thisWeek }) =>
     `${returning} returning customers came in today. You have ${total} regulars and ${thisWeek} visited this week.`,
   dip: ({ sales, pct }) =>
@@ -61,6 +70,9 @@ const en: Phrasebook = {
     offerRedeemed: 'Offer used',
     preApproved: 'Pre-approved (recommend only)',
     loanCaption: (rate, months) => `${rate}% a year · ${months} months`,
+    topThisWeek: 'Top sellers this week (units)',
+    customersThisMonth: 'Customers this month',
+    customersCaption: (regulars, newToday) => `${regulars} regulars · ${newToday} new today`,
     days: { Mon: 'Mon', Tue: 'Tue', Wed: 'Wed', Thu: 'Thu', Fri: 'Fri', Sat: 'Sat', Sun: 'Sun' },
   },
 }
@@ -69,9 +81,13 @@ const hinglish: Phrasebook = {
   today: ({ sales, payments, returning }) =>
     `Aaj ab tak ${sales} ki sale hui hai, ${payments} payments se. Inme ${returning} returning customers the.`,
   todayEmpty: 'Aaj abhi tak koi payment nahi aaya. Pehla bill yahan dikhega.',
-  last: ({ amount, instrument, minutes, visits, returning }) =>
-    `Aakhri payment ${amount} ka tha, card ${instrument} se, ${minutes < 1 ? 'abhi abhi' : `${minutes} minute pehle`}. ${returning ? `Returning customer, ${visits}vi visit.` : 'Naya customer.'}`,
+  last: ({ amount, method, payer, minutes, visits, returning }) =>
+    `Aakhri payment ${amount} ka tha, ${method === 'card' ? 'card' : 'UPI'} se (${payer}), ${minutes < 1 ? 'abhi abhi' : `${minutes} minute pehle`}. ${returning ? `Returning customer, ${visits}vi visit.` : 'Naya customer.'}`,
   lastEmpty: 'Aaj abhi tak koi payment nahi aaya.',
+  top: ({ item, units, next }) =>
+    `Is hafte sabse zyada ${item} bika: ${units} units. Uske baad ${next.map((n) => `${n.item} (${n.units})`).join(' aur ')}.`,
+  customers: ({ total, regulars, quiet, newToday }) =>
+    `Is mahine ${total} alag customers ne payment kiya. ${regulars} regular hain, jinme se ${quiet} is hafte nahi aaye, aur aaj ${newToday} naye customer aaye.`,
   regulars: ({ returning, total, thisWeek }) =>
     `Aaj ${returning} returning customers aaye. Aapke ${total} regular customers hain, is hafte ${thisWeek} aaye.`,
   dip: ({ sales, pct }) =>
@@ -93,6 +109,9 @@ const hinglish: Phrasebook = {
     offerRedeemed: 'Offer use hua',
     preApproved: 'Pre-approved (sirf salah)',
     loanCaption: (rate, months) => `${rate}% saalana · ${months} mahine`,
+    topThisWeek: 'Is hafte sabse zyada bike (units)',
+    customersThisMonth: 'Is mahine ke customers',
+    customersCaption: (regulars, newToday) => `${regulars} regular · aaj ${newToday} naye`,
     days: { Mon: 'Som', Tue: 'Mangal', Wed: 'Budh', Thu: 'Guru', Fri: 'Shukr', Sat: 'Shani', Sun: 'Ravi' },
   },
 }
@@ -101,9 +120,13 @@ const hi: Phrasebook = {
   today: ({ sales, payments, returning }) =>
     `आज अब तक ${sales} की बिक्री हुई है, ${payments} पेमेंट से। इनमें ${returning} लौटकर आए ग्राहक थे।`,
   todayEmpty: 'आज अभी तक कोई पेमेंट नहीं आया। पहला बिल यहाँ दिखेगा।',
-  last: ({ amount, instrument, minutes, visits, returning }) =>
-    `आखिरी पेमेंट ${amount} का था, कार्ड ${instrument} से, ${minutes < 1 ? 'अभी-अभी' : `${minutes} मिनट पहले`}। ${returning ? `लौटकर आए ग्राहक, ${visits}वीं विज़िट।` : 'नए ग्राहक।'}`,
+  last: ({ amount, method, payer, minutes, visits, returning }) =>
+    `आखिरी पेमेंट ${amount} का था, ${method === 'card' ? 'कार्ड' : 'UPI'} से (${payer}), ${minutes < 1 ? 'अभी-अभी' : `${minutes} मिनट पहले`}। ${returning ? `लौटकर आए ग्राहक, ${visits}वीं विज़िट।` : 'नए ग्राहक।'}`,
   lastEmpty: 'आज अभी तक कोई पेमेंट नहीं आया।',
+  top: ({ item, units, next }) =>
+    `इस हफ़्ते सबसे ज़्यादा ${item} बिका: ${units} यूनिट। उसके बाद ${next.map((n) => `${n.item} (${n.units})`).join(' और ')}।`,
+  customers: ({ total, regulars, quiet, newToday }) =>
+    `इस महीने ${total} अलग-अलग ग्राहकों ने पेमेंट किया। ${regulars} नियमित हैं, जिनमें से ${quiet} इस हफ़्ते नहीं आए, और आज ${newToday} नए ग्राहक आए।`,
   regulars: ({ returning, total, thisWeek }) =>
     `आज ${returning} लौटकर आए ग्राहक आए। आपके ${total} नियमित ग्राहक हैं, इस हफ़्ते ${thisWeek} आए।`,
   dip: ({ sales, pct }) =>
@@ -125,6 +148,9 @@ const hi: Phrasebook = {
     offerRedeemed: 'ऑफ़र इस्तेमाल हुआ',
     preApproved: 'प्री-अप्रूव्ड (सिर्फ़ सलाह)',
     loanCaption: (rate, months) => `${rate}% सालाना · ${months} महीने`,
+    topThisWeek: 'इस हफ़्ते सबसे ज़्यादा बिके (यूनिट)',
+    customersThisMonth: 'इस महीने के ग्राहक',
+    customersCaption: (regulars, newToday) => `${regulars} नियमित · आज ${newToday} नए`,
     days: { Mon: 'सोम', Tue: 'मंगल', Wed: 'बुध', Thu: 'गुरु', Fri: 'शुक्र', Sat: 'शनि', Sun: 'रवि' },
   },
 }
@@ -133,9 +159,13 @@ const mr: Phrasebook = {
   today: ({ sales, payments, returning }) =>
     `आज आतापर्यंत ${sales} ची विक्री झाली, ${payments} पेमेंटमधून. त्यात ${returning} परत आलेले ग्राहक होते.`,
   todayEmpty: 'आज अजून एकही पेमेंट आलं नाही. पहिलं बिल इथे दिसेल.',
-  last: ({ amount, instrument, minutes, visits, returning }) =>
-    `शेवटचं पेमेंट ${amount} चं होतं, कार्ड ${instrument} ने, ${minutes < 1 ? 'आत्ताच' : `${minutes} मिनिटांपूर्वी`}. ${returning ? `परत आलेले ग्राहक, ${visits}वी भेट.` : 'नवीन ग्राहक.'}`,
+  last: ({ amount, method, payer, minutes, visits, returning }) =>
+    `शेवटचं पेमेंट ${amount} चं होतं, ${method === 'card' ? 'कार्ड' : 'UPI'} ने (${payer}), ${minutes < 1 ? 'आत्ताच' : `${minutes} मिनिटांपूर्वी`}. ${returning ? `परत आलेले ग्राहक, ${visits}वी भेट.` : 'नवीन ग्राहक.'}`,
   lastEmpty: 'आज अजून एकही पेमेंट आलं नाही.',
+  top: ({ item, units, next }) =>
+    `या आठवड्यात सर्वात जास्त ${item} विकले गेले: ${units} नग. त्यानंतर ${next.map((n) => `${n.item} (${n.units})`).join(' आणि ')}.`,
+  customers: ({ total, regulars, quiet, newToday }) =>
+    `या महिन्यात ${total} वेगवेगळ्या ग्राहकांनी पेमेंट केलं. ${regulars} नेहमीचे आहेत, त्यांपैकी ${quiet} या आठवड्यात आले नाहीत, आणि आज ${newToday} नवीन ग्राहक आले.`,
   regulars: ({ returning, total, thisWeek }) =>
     `आज ${returning} परत आलेले ग्राहक आले. तुमचे ${total} नेहमीचे ग्राहक आहेत, या आठवड्यात ${thisWeek} आले.`,
   dip: ({ sales, pct }) =>
@@ -157,6 +187,9 @@ const mr: Phrasebook = {
     offerRedeemed: 'ऑफर वापरली',
     preApproved: 'प्री-अप्रूव्ह्ड (फक्त सल्ला)',
     loanCaption: (rate, months) => `${rate}% वार्षिक · ${months} महिने`,
+    topThisWeek: 'या आठवड्यात सर्वाधिक विकलेले (नग)',
+    customersThisMonth: 'या महिन्याचे ग्राहक',
+    customersCaption: (regulars, newToday) => `${regulars} नेहमीचे · आज ${newToday} नवीन`,
     days: { Mon: 'सोम', Tue: 'मंगळ', Wed: 'बुध', Thu: 'गुरु', Fri: 'शुक्र', Sat: 'शनि', Sun: 'रवि' },
   },
 }
@@ -164,10 +197,12 @@ const mr: Phrasebook = {
 export const phrasebooks: Record<LanguageCode, Phrasebook> = { en, hinglish, hi, mr }
 
 /** Question topics the mock understands, matched on words from all four languages. */
-export type Intent = 'last' | 'regulars' | 'loan' | 'offer' | 'today' | 'dip' | 'other'
+export type Intent = 'last' | 'top' | 'customers' | 'regulars' | 'loan' | 'offer' | 'today' | 'dip' | 'other'
 
 const INTENTS: [Exclude<Intent, 'other'>, RegExp][] = [
   ['last', /last payment|latest payment|aakhri|aakhiri|akhri|आख़?िरी|ख़िरी|अंतिम|शेवट/i],
+  ['top', /top item|top sell|best sell|sold the most|most sold|sabse zyada|sabse jyada|bika|सबसे ज़्यादा|सबसे ज्यादा|बिका|सर्वाधिक|सर्वात जास्त|विकल/i],
+  ['customers', /how many customers|kitne customers|kitne grahak|customers hain|कितने ग्राहक|किती ग्राहक/i],
   ['regulars', /regular|returning|customer|grahak|ग्राहक|रेगुलर|नियमित/i],
   ['loan', /loan|credit|udhaar|udhar|लोन|कर्ज|उधार|क्रेडिट/i],
   ['offer', /offer|campaign|whatsapp|ऑफ़र|ऑफर/i],

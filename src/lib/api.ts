@@ -1,27 +1,30 @@
-import { MockApiError, mockRequest } from '../mocks/server'
+import { MockApiError, mockRequest, subscribeMockLive } from '../mocks/server'
 import type {
   ActionDecisionRequest,
   AgentAction,
   AgentRunReport,
-  Bill,
-  BillRequest,
+  BriefingResponse,
   Campaign,
+  CardTapResponse,
   CashflowResponse,
-  CreateBillRequest,
+  Checkout,
+  CurrentCheckoutResponse,
   InsightsResponse,
+  LinkCardResponse,
+  LiveEvent,
   Merchant,
   OtpRequest,
   OtpResponse,
   OtpVerifyRequest,
   OtpVerifyResponse,
   OutcomesResponse,
-  PaymentResponse,
   QueryRequest,
   QueryResponse,
   RegularsResponse,
   TodaySummary,
   TrustSettings,
 } from '../mocks/types'
+import { merchantId } from './merchant'
 
 /**
  * Typed API client. When VITE_API_BASE_URL is set, requests go to the real
@@ -71,9 +74,33 @@ export const api = {
   getMerchant: () => request<Merchant>('GET', '/merchant/profile'),
   sendOtp: (payload: OtpRequest) => request<OtpResponse>('POST', '/auth/otp', payload),
   verifyOtp: (payload: OtpVerifyRequest) => request<OtpVerifyResponse>('POST', '/auth/verify', payload),
-  runAgent: () => request<AgentRunReport>('POST', '/agent/run'),
+  briefing: () => request<BriefingResponse>('POST', '/agent/briefing', { merchantId: merchantId() }),
+  runAgent: () => request<AgentRunReport>('POST', '/agent/run', { merchantId: merchantId() }),
+  createCheckout: (amount: number) => request<Checkout>('POST', '/checkout', { merchantId: merchantId(), amount }),
+  cancelCheckout: (checkoutId: string) =>
+    request<{ ok: boolean }>('POST', `/checkout/${encodeURIComponent(checkoutId)}/cancel`, { merchantId: merchantId() }),
+  currentCheckout: () => request<CurrentCheckoutResponse>('GET', `/checkout/current?merchantId=${encodeURIComponent(merchantId())}`),
+  linkCard: (rfidUid: string, payerVpa: string) =>
+    request<LinkCardResponse>('POST', '/pos/link-card', { merchantId: merchantId(), rfidUid, payerVpa }),
+  // Mock only: the counter's running total and a stand-in for a card touching the RFID reader.
   getToday: () => request<TodaySummary>('GET', '/counter/today'),
-  createBill: (payload: CreateBillRequest) => request<Bill>('POST', '/counter/bill', payload),
-  tapCard: (payload: BillRequest) => request<PaymentResponse>('POST', '/counter/bill/tap', payload),
-  cancelBill: (payload: BillRequest) => request<{ ok: boolean }>('POST', '/counter/bill/cancel', payload),
+  cardTap: (checkoutId?: string) => request<CardTapResponse>('POST', '/pos/card-tap', { merchantId: merchantId(), checkoutId }),
+}
+
+/**
+ * Payments that arrive on their own (a customer paying by QR). The mock calls
+ * back in the page; a real backend would push these over its live stream.
+ */
+export function subscribeLive(listener: (event: LiveEvent) => void): () => void {
+  if (!baseUrl) return subscribeMockLive(listener)
+  const source = new EventSource(`${baseUrl.replace(/\/$/, '')}/live?merchantId=${encodeURIComponent(merchantId())}`)
+  const onPaid = (message: MessageEvent<string>) => {
+    try {
+      listener(JSON.parse(message.data) as LiveEvent)
+    } catch {
+      // Ignore anything that isn't a payment this app understands.
+    }
+  }
+  source.addEventListener('paid', onPaid)
+  return () => source.close()
 }
