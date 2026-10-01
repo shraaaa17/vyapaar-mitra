@@ -1,4 +1,4 @@
-import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from 'react'
+import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode, Ref } from 'react'
 import { cn } from '../../lib/cn'
 
 type Variant = 'primary' | 'accent' | 'secondary' | 'ghost'
@@ -15,24 +15,25 @@ type CommonProps = {
 }
 
 type AsButton = CommonProps &
-  Omit<ButtonHTMLAttributes<HTMLButtonElement>, keyof CommonProps> & { href?: undefined }
+  Omit<ButtonHTMLAttributes<HTMLButtonElement>, keyof CommonProps> & { href?: undefined; ref?: Ref<HTMLButtonElement> }
 type AsLink = CommonProps &
-  Omit<AnchorHTMLAttributes<HTMLAnchorElement>, keyof CommonProps> & { href: string }
+  Omit<AnchorHTMLAttributes<HTMLAnchorElement>, keyof CommonProps> & { href: string; ref?: Ref<HTMLAnchorElement> }
 
 export type ClayButtonProps = AsButton | AsLink
 
 const variantClasses: Record<Variant, string> = {
   primary:
-    'bg-paytm-blue text-white [box-shadow:var(--clay-shadow-blue)] hover:bg-paytm-blue-800',
+    'bg-accent text-on-accent [box-shadow:var(--clay-shadow-accent)] hover:bg-accent-hover',
   accent:
-    'bg-paytm-cyan text-paytm-blue [box-shadow:var(--clay-shadow-cyan)] hover:bg-[#14c3f5]',
+    'bg-coral-wash text-coral-ink [box-shadow:var(--clay-shadow-soft)] hover:bg-[#fde0e6]',
   secondary:
-    'bg-white text-paytm-blue [box-shadow:var(--clay-shadow-soft)] hover:[box-shadow:var(--clay-shadow-raised)]',
-  ghost: 'bg-transparent text-paytm-blue hover:bg-mist',
+    'bg-surface text-ink [box-shadow:var(--clay-shadow-soft)] hover:[box-shadow:var(--clay-shadow-raised)]',
+  ghost: 'bg-transparent text-ink hover:bg-surface-2',
 }
 
+// Every size keeps the 48px minimum tap target; sm is narrower and quieter, not shorter.
 const sizeClasses: Record<Size, string> = {
-  sm: 'h-10 px-4 text-sm gap-1.5',
+  sm: 'h-12 px-4 text-sm gap-1.5',
   md: 'h-12 px-6 text-[15px] gap-2',
   lg: 'h-14 px-7 text-base gap-2.5',
 }
@@ -55,7 +56,7 @@ export function ClayButton(props: ClayButtonProps) {
 
   const classes = cn(
     'clay-button inline-flex select-none items-center justify-center font-semibold whitespace-nowrap',
-    'disabled:pointer-events-none disabled:opacity-50',
+    'disabled:pointer-events-none disabled:opacity-50 aria-disabled:cursor-not-allowed aria-disabled:opacity-70',
     variantClasses[variant],
     sizeClasses[size],
     fullWidth && 'w-full',

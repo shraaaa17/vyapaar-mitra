@@ -5,11 +5,11 @@ type Tone = 'cyan' | 'blue' | 'cloud' | 'success' | 'caution'
 type Size = 'sm' | 'md' | 'lg'
 
 const toneClasses: Record<Tone, string> = {
-  cyan: 'bg-sky-wash text-paytm-cyan-600',
-  blue: 'bg-paytm-blue text-white',
-  cloud: 'bg-cloud text-paytm-blue',
-  success: 'bg-success-wash text-success',
-  caution: 'bg-caution-wash text-caution',
+  cyan: 'bg-accent-wash text-accent-ink',
+  blue: 'bg-accent text-on-accent',
+  cloud: 'bg-well text-ink',
+  success: 'bg-success-wash text-success-ink',
+  caution: 'bg-caution-wash text-caution-ink',
 }
 
 const sizeClasses: Record<Size, string> = {
@@ -34,7 +34,7 @@ export function IconBubble({
     <span
       aria-hidden
       className={cn(
-        'inline-flex shrink-0 items-center justify-center [box-shadow:inset_3px_3px_6px_rgb(255_255_255/0.7),inset_-3px_-3px_7px_rgb(0_46_110/0.08),3px_4px_10px_rgb(0_46_110/0.08)]',
+        'inline-flex shrink-0 items-center justify-center [box-shadow:inset_3px_3px_6px_rgb(255_255_255/0.7),inset_-3px_-3px_7px_rgb(10_31_68/0.07),3px_4px_10px_rgb(10_31_68/0.07)]',
         toneClasses[tone],
         sizeClasses[size],
         className,

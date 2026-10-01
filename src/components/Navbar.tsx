@@ -36,7 +36,7 @@ export function Navbar() {
       <nav
         aria-label="Primary"
         className={cn(
-          'pointer-events-auto mx-auto flex max-w-6xl items-center justify-between gap-4 rounded-full bg-white transition-all duration-300 ease-(--ease-soft)',
+          'pointer-events-auto mx-auto flex max-w-6xl items-center justify-between gap-4 rounded-full bg-surface transition-all duration-300 ease-(--ease-soft)',
           '[box-shadow:var(--clay-shadow-soft)]',
           scrolled ? 'h-14 px-2.5 pl-4 sm:h-[60px] sm:pl-5' : 'h-16 px-3 pl-4 sm:h-[72px] sm:pl-6',
         )}
@@ -50,7 +50,7 @@ export function Navbar() {
             <li key={link.href}>
               <a
                 href={link.href}
-                className="rounded-full px-4 py-2 text-[15px] font-medium text-slate transition-colors hover:bg-cloud hover:text-paytm-blue"
+                className="rounded-full px-4 py-2 text-[15px] font-medium text-slate transition-colors hover:bg-surface-2 hover:text-ink"
               >
                 {link.label}
               </a>
@@ -74,7 +74,7 @@ export function Navbar() {
             aria-expanded={open}
             aria-controls="mobile-menu"
             aria-label={open ? 'Close menu' : 'Open menu'}
-            className="clay-button inline-flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center bg-cloud text-paytm-blue lg:hidden"
+            className="clay-button inline-flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center bg-well text-ink lg:hidden"
           >
             {open ? <X aria-hidden className="size-5" /> : <Menu aria-hidden className="size-5" />}
           </button>
@@ -97,10 +97,10 @@ export function Navbar() {
                   <a
                     href={link.href}
                     onClick={() => setOpen(false)}
-                    className="flex items-center justify-between rounded-2xl px-4 py-3.5 text-base font-medium text-paytm-blue transition-colors hover:bg-cloud"
+                    className="flex items-center justify-between rounded-2xl px-4 py-3.5 text-base font-medium text-ink transition-colors hover:bg-surface-2"
                   >
                     {link.label}
-                    <ArrowRight aria-hidden className="size-4 text-paytm-cyan-600" />
+                    <ArrowRight aria-hidden className="size-4 text-accent-ink" />
                   </a>
                 </li>
               ))}

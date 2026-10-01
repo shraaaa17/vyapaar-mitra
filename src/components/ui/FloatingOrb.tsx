@@ -28,13 +28,13 @@ export function FloatingOrb({ size = 'md', pulse = true, float = false, classNam
       aria-hidden={label ? undefined : true}
     >
       {pulse && (
-        <span className="absolute inset-0 animate-orb-pulse rounded-full bg-paytm-cyan/60" />
+        <span className="absolute inset-0 animate-orb-pulse rounded-full bg-accent/60" />
       )}
       <span
         className="relative block h-full w-full rounded-full"
         style={{
           background:
-            'radial-gradient(circle at 32% 28%, #ffffff 0%, #9be8ff 14%, #00b9f1 46%, #0a5fb4 78%, #002e6e 100%)',
+            'radial-gradient(circle at 32% 28%, #ffffff 0%, #9be8ff 14%, #00baf2 46%, #0a6fb8 78%, #0a1f44 100%)',
           boxShadow:
             px > 30
               ? `0 ${px * 0.14}px ${px * 0.32}px rgb(0 94 170 / 0.35), inset -${px * 0.06}px -${px * 0.08}px ${px * 0.14}px rgb(0 30 90 / 0.35)`

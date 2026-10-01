@@ -8,11 +8,11 @@ export function Logo({ compact = false, className }: { compact?: boolean; classN
       <FloatingOrb size="sm" pulse={false} />
       <span
         className={cn(
-          'font-bold whitespace-nowrap tracking-[-0.02em] text-paytm-blue transition-[font-size] duration-300',
+          'font-bold whitespace-nowrap tracking-[-0.02em] text-ink transition-[font-size] duration-300',
           compact ? 'text-[17px]' : 'text-lg',
         )}
       >
-        Vyapaar <span className="text-paytm-cyan-600">Mitra</span>
+        Vyapaar <span className="text-accent-ink">Mitra</span>
       </span>
     </span>
   )

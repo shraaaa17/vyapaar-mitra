@@ -1,17 +1,21 @@
-import { Navbar } from './components/Navbar'
-import { DesignSystem } from './pages/DesignSystem'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { MotionConfig } from 'framer-motion'
+import { RouterProvider } from 'react-router-dom'
+import { router } from './router'
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { staleTime: 30_000, retry: 1, refetchOnWindowFocus: false },
+  },
+})
 
 export default function App() {
   return (
-    <>
-      <a
-        href="#top"
-        className="sr-only z-[60] rounded-full bg-paytm-blue px-5 py-3 font-semibold text-white focus:not-sr-only focus:fixed focus:top-4 focus:left-4"
-      >
-        Skip to content
-      </a>
-      <Navbar />
-      <DesignSystem />
-    </>
+    <QueryClientProvider client={queryClient}>
+      {/* Movement is dropped for people who ask their device for reduced motion. */}
+      <MotionConfig reducedMotion="user">
+        <RouterProvider router={router} />
+      </MotionConfig>
+    </QueryClientProvider>
   )
 }

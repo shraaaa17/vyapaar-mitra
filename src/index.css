@@ -1,35 +1,63 @@
 @import 'tailwindcss';
 
 /*
- * Vyapaar Mitra design tokens.
- * Brand: Paytm-inspired deep blue + capri cyan on white and a very light cloud tint.
- * Every other tint is derived from those two hues so no unrelated colour dominates.
+ * Vyapaar Mitra design tokens, from the master prompt palette:
+ * navy #0A1F44 for text, headings and icons (never a page or panel fill),
+ * Paytm blue #00BAF2 as the primary, coral #F23A5C as the accent, success green,
+ * a #F5F7FA page with white cards and 1px soft borders. Green, amber and red
+ * are kept for risk only. Every other tint is derived from these.
  */
 @theme {
   /* Brand */
-  --color-paytm-blue: #002e6e;
-  --color-paytm-blue-800: #0a3a80;
-  --color-paytm-blue-600: #1d5aa8;
-  --color-paytm-cyan: #00b9f1;
-  --color-paytm-cyan-600: #0096c7;
-  --color-paytm-cyan-300: #7fdcf8;
+  --color-navy: #0a1f44;
+  --color-paytm-blue: #00baf2;
+  --color-coral: #f23a5c;
 
   /* Surfaces */
-  --color-cloud: #f4faff;
-  --color-mist: #e8f4fd;
-  --color-frost: #d6ecfa;
-  --color-sky-wash: #e3f7fe;
+  --color-canvas: #f5f7fa; /* page */
+  --color-surface: #ffffff; /* cards */
+  --color-well: #f1f4f8; /* inset wells inside cards: inputs, tracks, quiet tiles */
+  --color-surface-2: #eaf2f8; /* tinted tiles, chips and hover */
+  --color-line: #e3e8ef; /* the 1px soft border */
+  --color-line-strong: #7a889b; /* control edges (3:1 on white) */
 
   /* Text */
-  --color-ink: #002e6e;
+  --color-ink: var(--color-navy);
   --color-slate: #425466;
-  --color-slate-soft: #6b7c8f;
+  --color-slate-soft: #5a6a7c;
+
+  /* Primary (Paytm blue). It is too light for white text, so fills carry navy text. */
+  --color-accent: var(--color-paytm-blue);
+  --color-accent-hover: #1fc4f5;
+  --color-accent-ink: #00739a; /* Paytm blue deep enough for small text on light surfaces */
+  --color-accent-wash: #e5f7fe;
+  --color-on-accent: var(--color-navy);
+
+  /* Accent (coral): highlights only, never behind small text */
+  --color-coral-ink: #c81e45;
+  --color-coral-wash: #feecef;
 
   /* Status: used sparingly for outcomes and risk, never as a dominant colour */
   --color-success: #0f9d6b;
   --color-success-wash: #e3f7ef;
+  --color-success-ink: #0b7a53;
   --color-caution: #b26a00;
   --color-caution-wash: #fff4e0;
+  --color-caution-ink: #8a5200;
+  --color-danger: #c42b1c;
+  --color-danger-wash: #fdecea;
+  --color-danger-ink: #c42b1c;
+
+  /* Risk coding: green low, amber medium, red high */
+  --color-risk-low: var(--color-success);
+  --color-risk-low-wash: var(--color-success-wash);
+  --color-risk-low-ink: var(--color-success-ink);
+  --color-risk-medium: var(--color-caution);
+  --color-risk-medium-wash: var(--color-caution-wash);
+  --color-risk-medium-ink: var(--color-caution-ink);
+  --color-risk-high: var(--color-danger);
+  --color-risk-high-wash: var(--color-danger-wash);
+  --color-risk-high-ink: var(--color-danger-ink);
 
   /* Type */
   --font-sans: 'Poppins', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -97,53 +125,52 @@
 }
 
 /*
- * Clay shadow recipes. Kept as variables so utilities, components and one-off
- * elements share the same depth language instead of copying long shadow strings.
+ * Clay shadow recipes. Each surface recipe starts with the 1px soft border
+ * (an inset ring, so it never shifts layout), then the clay depth. Kept as
+ * variables so every component shares the same depth language.
  */
 :root {
+  --clay-rim: inset 0 0 0 1px rgb(10 31 68 / 0.08);
   --clay-shadow-raised:
-    12px 14px 32px rgb(0 46 110 / 0.1), 2px 3px 8px rgb(0 46 110 / 0.05),
-    inset 7px 7px 12px rgb(255 255 255 / 0.9), inset -7px -7px 14px rgb(0 46 110 / 0.07);
+    var(--clay-rim), 12px 14px 32px rgb(10 31 68 / 0.08), 2px 3px 8px rgb(10 31 68 / 0.04),
+    inset 7px 7px 12px rgb(255 255 255 / 0.9), inset -7px -7px 14px rgb(10 31 68 / 0.05);
   --clay-shadow-soft:
-    6px 8px 18px rgb(0 46 110 / 0.08), inset 4px 4px 8px rgb(255 255 255 / 0.9),
-    inset -4px -4px 9px rgb(0 46 110 / 0.06);
+    var(--clay-rim), 6px 8px 18px rgb(10 31 68 / 0.07), inset 4px 4px 8px rgb(255 255 255 / 0.9),
+    inset -4px -4px 9px rgb(10 31 68 / 0.045);
   --clay-shadow-hover:
-    16px 22px 40px rgb(0 46 110 / 0.13), 2px 4px 10px rgb(0 46 110 / 0.06),
-    inset 7px 7px 12px rgb(255 255 255 / 0.9), inset -7px -7px 14px rgb(0 46 110 / 0.07);
+    var(--clay-rim), 16px 22px 40px rgb(10 31 68 / 0.11), 2px 4px 10px rgb(10 31 68 / 0.05),
+    inset 7px 7px 12px rgb(255 255 255 / 0.9), inset -7px -7px 14px rgb(10 31 68 / 0.05);
   --clay-shadow-inset:
-    inset 5px 5px 12px rgb(0 46 110 / 0.1), inset -5px -5px 12px rgb(255 255 255 / 0.95);
-  --clay-shadow-blue:
-    10px 14px 28px rgb(0 46 110 / 0.3), inset 4px 4px 10px rgb(255 255 255 / 0.18),
-    inset -5px -6px 12px rgb(0 10 40 / 0.35);
-  --clay-shadow-cyan:
-    10px 14px 28px rgb(0 150 199 / 0.28), inset 4px 4px 10px rgb(255 255 255 / 0.4),
-    inset -5px -6px 12px rgb(0 70 130 / 0.22);
+    var(--clay-rim), inset 5px 5px 12px rgb(10 31 68 / 0.08), inset -5px -5px 12px rgb(255 255 255 / 0.95);
+  --clay-shadow-accent:
+    8px 12px 24px rgb(0 160 214 / 0.28), inset 4px 4px 10px rgb(255 255 255 / 0.45),
+    inset -5px -6px 12px rgb(0 90 140 / 0.2);
 
   color-scheme: light;
 }
 
 @utility clay-card {
   border-radius: var(--radius-clay-lg);
-  background-color: var(--color-white);
+  background-color: var(--color-surface);
   box-shadow: var(--clay-shadow-raised);
 }
 
 @utility clay-soft {
   border-radius: var(--radius-clay);
-  background-color: var(--color-white);
+  background-color: var(--color-surface);
   box-shadow: var(--clay-shadow-soft);
 }
 
 @utility clay-inset {
   border-radius: var(--radius-clay);
-  background-color: var(--color-cloud);
+  background-color: var(--color-well);
   box-shadow: var(--clay-shadow-inset);
 }
 
-@utility clay-blue {
+@utility clay-accent {
   border-radius: var(--radius-clay-lg);
-  background-color: var(--color-paytm-blue);
-  box-shadow: var(--clay-shadow-blue);
+  background-color: var(--color-accent);
+  box-shadow: var(--clay-shadow-accent);
 }
 
 @utility clay-button {
@@ -176,18 +203,6 @@
     -webkit-text-size-adjust: 100%;
   }
 
-  body {
-    min-height: 100dvh;
-    background-color: var(--color-cloud);
-    color: var(--color-slate);
-    font-family: var(--font-sans);
-    font-size: var(--text-body);
-    line-height: var(--text-body--line-height);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
-  }
-
   h1,
   h2,
   h3,
@@ -200,15 +215,34 @@
     text-wrap: pretty;
   }
 
+  /* Navy ring with a Paytm-blue halo: well over 3:1 on white, the page and the blue fills. */
   :focus-visible {
-    outline: 3px solid var(--color-paytm-cyan);
+    outline: 3px solid var(--color-navy);
     outline-offset: 3px;
     border-radius: 12px;
+    box-shadow: 0 0 0 6px rgb(0 186 242 / 0.35);
+  }
+
+  /* Devanagari needs no tracking and a taller line. :lang(hi) also matches
+     hi-Latn (Hinglish), which is Latin script, so it is excluded. */
+  :is(:lang(hi), :lang(mr)):not(:lang(hi-Latn)) {
+    line-height: 1.75;
+  }
+  :is(:lang(hi), :lang(mr)):not(:lang(hi-Latn)) :is(h1, h2, h3, h4) {
+    line-height: 1.35;
   }
 
   ::selection {
-    background: var(--color-paytm-cyan-300);
-    color: var(--color-paytm-blue);
+    background: #b3ebfc;
+    color: var(--color-navy);
+  }
+
+  /* Phones have a fixed bar at the bottom (tabs, or onboarding's Continue):
+     keep whatever gets focus scrolled clear of it. */
+  @media (width < 48rem) {
+    html {
+      scroll-padding-bottom: 7rem;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -223,4 +257,31 @@
       transition-duration: 0.01ms !important;
     }
   }
+}
+
+/*
+ * Kept outside the cascade layers on purpose: unlayered rules beat layered
+ * ones, so a host page's own reset (for example when the app is embedded as a
+ * preview) cannot replace the app's typeface, size or background.
+ */
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background-color: var(--color-canvas);
+  color: var(--color-slate);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/*
+ * Devanagari never gets the negative tracking used on Latin headings: it
+ * pushes matras into the next letter. Unlayered so it beats tracking-*
+ * utilities; Latin text inside (lang="en" or "hi-Latn") keeps its tracking.
+ */
+:is(:lang(hi), :lang(mr)):not(:lang(hi-Latn)) {
+  letter-spacing: 0;
 }

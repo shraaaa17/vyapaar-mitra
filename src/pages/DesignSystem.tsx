@@ -26,19 +26,19 @@ import {
 import { formatINR } from '../lib/format'
 
 const palette = [
-  { name: 'Deep Blue', token: 'paytm-blue', hex: '#002E6E', use: 'Headings, navigation, primary CTA, trust', swatch: 'bg-paytm-blue' },
-  { name: 'Capri Cyan', token: 'paytm-cyan', hex: '#00B9F1', use: 'AI accents, active states, data viz', swatch: 'bg-paytm-cyan' },
-  { name: 'White', token: 'white', hex: '#FFFFFF', use: 'Cards and content surfaces', swatch: 'bg-white' },
-  { name: 'Cloud', token: 'cloud', hex: '#F4FAFF', use: 'Page background', swatch: 'bg-cloud' },
-  { name: 'Slate', token: 'slate', hex: '#425466', use: 'Secondary text', swatch: 'bg-slate' },
+  { name: 'Navy', token: 'navy / ink', hex: '#0A1F44', use: 'Headings, text and icons (never a fill)', swatch: 'bg-navy' },
+  { name: 'Paytm Blue', token: 'paytm-blue / accent', hex: '#00BAF2', use: 'Primary actions, live states, data viz', swatch: 'bg-paytm-blue' },
+  { name: 'Coral', token: 'coral', hex: '#F23A5C', use: 'Highlights: live, returning, rewards', swatch: 'bg-coral' },
+  { name: 'White', token: 'surface', hex: '#FFFFFF', use: 'Cards, with a 1px soft border', swatch: 'bg-surface' },
+  { name: 'Page', token: 'canvas', hex: '#F5F7FA', use: 'Page background', swatch: 'bg-canvas' },
 ]
 
 const tints = [
-  { token: 'mist', swatch: 'bg-mist' },
-  { token: 'frost', swatch: 'bg-frost' },
-  { token: 'sky-wash', swatch: 'bg-sky-wash' },
-  { token: 'paytm-cyan-300', swatch: 'bg-paytm-cyan-300' },
-  { token: 'paytm-blue-600', swatch: 'bg-paytm-blue-600' },
+  { token: 'well', swatch: 'bg-well' },
+  { token: 'surface-2', swatch: 'bg-surface-2' },
+  { token: 'line', swatch: 'bg-line' },
+  { token: 'accent-wash', swatch: 'bg-accent-wash' },
+  { token: 'coral-wash', swatch: 'bg-coral-wash' },
   { token: 'success', swatch: 'bg-success' },
   { token: 'caution', swatch: 'bg-caution' },
 ]
@@ -126,22 +126,22 @@ export function DesignSystem() {
           eyebrow="Design system · Phase 1"
           title={
             <>
-              Clay, calm and <span className="text-paytm-cyan-600">unmistakably Paytm.</span>
+              Clay, calm and <span className="text-accent-ink">unmistakably Paytm.</span>
             </>
           }
           description="The tokens, surfaces and components every Vyapaar Mitra screen is built from. This page is a working preview of the system and will be replaced by the landing page in Phase 2."
         />
 
-        <Block id="colors" title="Colour" note="Deep blue for trust, capri cyan for intelligence, lots of white. Supporting tints derive from the same two hues.">
+        <Block id="colors" title="Colour" note="Navy for text, Paytm blue for primary actions, coral for highlights, white cards with soft borders on a light page. Green, amber and red only for risk.">
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
             {palette.map((color) => (
               <ClayCard key={color.token} elevation="soft" padding="sm" className="flex flex-col gap-3">
                 <span
                   aria-hidden
-                  className={`${color.swatch} h-20 rounded-2xl [box-shadow:inset_3px_3px_8px_rgb(255_255_255/0.35),inset_-3px_-3px_8px_rgb(0_46_110/0.12)]`}
+                  className={`${color.swatch} h-20 rounded-2xl [box-shadow:inset_0_0_0_1px_rgb(10_31_68/0.08),inset_3px_3px_8px_rgb(255_255_255/0.35),inset_-3px_-3px_8px_rgb(10_31_68/0.1)]`}
                 />
                 <div>
-                  <p className="font-semibold text-paytm-blue">{color.name}</p>
+                  <p className="font-semibold text-ink">{color.name}</p>
                   <p className="font-mono text-xs text-slate-soft">
                     {color.hex} · {color.token}
                   </p>
@@ -152,7 +152,7 @@ export function DesignSystem() {
           </div>
           <div className="flex flex-wrap gap-3">
             {tints.map((tint) => (
-              <span key={tint.token} className="inline-flex items-center gap-2 rounded-full bg-white py-1.5 pr-3.5 pl-1.5 text-xs font-medium text-slate [box-shadow:var(--clay-shadow-soft)]">
+              <span key={tint.token} className="inline-flex items-center gap-2 rounded-full bg-surface py-1.5 pr-3.5 pl-1.5 text-xs font-medium text-slate [box-shadow:var(--clay-shadow-soft)]">
                 <span aria-hidden className={`${tint.swatch} size-6 rounded-full`} />
                 {tint.token}
               </span>
@@ -161,14 +161,14 @@ export function DesignSystem() {
         </Block>
 
         <Block id="type" title="Typography" note="Poppins, with Inter and system-ui as fallbacks. Bold, short and generously spaced.">
-          <ClayCard padding="lg" className="flex flex-col divide-y divide-mist">
+          <ClayCard padding="lg" className="flex flex-col divide-y divide-line">
             {typeScale.map((item) => (
               <div key={item.token} className="grid gap-2 py-5 first:pt-0 last:pb-0 md:grid-cols-[200px_1fr] md:items-baseline md:gap-8">
                 <div>
-                  <p className="font-mono text-sm font-semibold text-paytm-cyan-600">{item.token}</p>
+                  <p className="font-mono text-sm font-semibold text-accent-ink">{item.token}</p>
                   <p className="text-xs text-slate-soft">{item.spec}</p>
                 </div>
-                <p className={`${item.token} ${item.token.startsWith('text-body') ? 'text-slate' : 'text-paytm-blue'}`}>
+                <p className={`${item.token} ${item.token.startsWith('text-body') ? 'text-slate' : 'text-ink'}`}>
                   {item.sample}
                 </p>
               </div>
@@ -179,20 +179,20 @@ export function DesignSystem() {
         <Block id="surfaces" title="Clay surfaces" note="Four depths, each tuned rather than copied: raised for primary cards, soft for tiles, inset for wells, blue for emphasis.">
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <ClayCard padding="lg" className="flex min-h-44 flex-col justify-end">
-              <p className="font-mono text-sm text-paytm-cyan-600">clay-card</p>
+              <p className="font-mono text-sm text-accent-ink">clay-card</p>
               <p className="text-card">Raised</p>
             </ClayCard>
             <ClayCard elevation="soft" padding="lg" className="flex min-h-44 flex-col justify-end">
-              <p className="font-mono text-sm text-paytm-cyan-600">clay-soft</p>
+              <p className="font-mono text-sm text-accent-ink">clay-soft</p>
               <p className="text-card">Soft</p>
             </ClayCard>
             <ClayCard elevation="inset" tone="cloud" padding="lg" className="flex min-h-44 flex-col justify-end">
-              <p className="font-mono text-sm text-paytm-cyan-600">clay-inset</p>
+              <p className="font-mono text-sm text-accent-ink">clay-inset</p>
               <p className="text-card">Inset</p>
             </ClayCard>
             <ClayCard tone="blue" padding="lg" className="flex min-h-44 flex-col justify-end">
-              <p className="font-mono text-sm text-paytm-cyan-300">clay-blue</p>
-              <p className="text-card text-white">Emphasis</p>
+              <p className="font-mono text-sm">clay-accent</p>
+              <p className="text-card">Emphasis</p>
             </ClayCard>
           </div>
         </Block>

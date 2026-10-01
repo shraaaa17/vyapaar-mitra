@@ -61,13 +61,13 @@ export function InsightCard({
 
       {recommendation && (
         <div className="clay-inset rounded-clay-sm px-4 py-3 text-sm">
-          <p className="text-xs font-semibold tracking-[0.12em] text-paytm-cyan-600 uppercase">Recommended</p>
-          <p className="mt-1 font-medium text-paytm-blue">{recommendation}</p>
+          <p className="text-xs font-semibold tracking-[0.12em] text-accent-ink uppercase">Recommended</p>
+          <p className="mt-1 font-medium text-ink">{recommendation}</p>
         </div>
       )}
 
       {risk === 'high' && (
-        <p className="text-sm font-medium text-caution">Merchant approval required. Vyapaar Mitra never acts on this alone.</p>
+        <p className="text-sm font-medium text-caution-ink">Merchant approval required. Vyapaar Mitra never acts on this alone.</p>
       )}
 
       {status === 'open' ? (
@@ -90,7 +90,7 @@ export function InsightCard({
           role="status"
           className={cn(
             'mt-auto inline-flex items-center gap-2 text-sm font-semibold',
-            status === 'reviewed' ? 'text-success' : 'text-slate-soft',
+            status === 'reviewed' ? 'text-success-ink' : 'text-slate-soft',
           )}
         >
           {status === 'reviewed' && <Check aria-hidden className="size-4" />}
