@@ -13,7 +13,7 @@ export function BottomTabs() {
   return (
     <nav
       aria-label={t('nav.main')}
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-frost/70 bg-white pb-[env(safe-area-inset-bottom)] [box-shadow:0_-8px_24px_rgb(0_46_110/0.06)] md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-line/70 bg-surface pb-[env(safe-area-inset-bottom)] [box-shadow:0_-8px_24px_rgb(10_31_68/0.06)] md:hidden"
     >
       <ul className="mx-auto grid max-w-lg grid-cols-5">
         {primaryNav.map((item) => {
@@ -26,7 +26,7 @@ export function BottomTabs() {
                 className={({ isActive }) =>
                   cn(
                     'relative flex min-h-16 flex-col items-center justify-center gap-1 px-1 text-[11px] font-medium transition-colors',
-                    isActive ? 'text-paytm-blue' : 'text-slate-soft hover:text-paytm-blue',
+                    isActive ? 'text-ink' : 'text-slate-soft hover:text-ink',
                   )
                 }
               >
@@ -35,7 +35,7 @@ export function BottomTabs() {
                     <span
                       className={cn(
                         'relative inline-flex h-8 w-12 items-center justify-center rounded-full transition-all duration-200',
-                        isActive && 'bg-sky-wash text-paytm-cyan-600',
+                        isActive && 'bg-accent-wash text-accent-ink',
                       )}
                     >
                       <Icon aria-hidden className="size-[22px]" strokeWidth={isActive ? 2.4 : 2} />

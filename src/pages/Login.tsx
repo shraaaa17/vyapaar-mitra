@@ -70,18 +70,18 @@ export function Login() {
         </div>
         <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <label htmlFor={inputId} className="text-sm font-semibold text-paytm-blue">
+            <label htmlFor={inputId} className="text-sm font-semibold text-ink">
               {t('auth.phoneLabel')}
             </label>
             <div
               className={cn(
                 'clay-inset flex h-16 items-center gap-3 rounded-2xl px-4',
-                'focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-paytm-blue-600',
+                'focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-accent',
                 error && 'ring-2 ring-danger',
               )}
             >
               <Smartphone aria-hidden className="size-5 shrink-0 text-slate-soft" />
-              <span className="text-lg font-semibold text-paytm-blue" aria-hidden>
+              <span className="text-lg font-semibold text-ink" aria-hidden>
                 +91
               </span>
               <input
@@ -99,11 +99,11 @@ export function Login() {
                 placeholder="98765 43210"
                 aria-invalid={error ? true : undefined}
                 aria-describedby={error ? errorId : undefined}
-                className="h-full min-w-0 flex-1 bg-transparent text-xl font-semibold tracking-wide text-paytm-blue tabular-nums outline-none placeholder:font-medium placeholder:text-slate-soft"
+                className="h-full min-w-0 flex-1 bg-transparent text-xl font-semibold tracking-wide text-ink tabular-nums outline-none placeholder:font-medium placeholder:text-slate-soft"
               />
             </div>
             {error && (
-              <p id={errorId} role="alert" className="text-sm font-medium text-danger">
+              <p id={errorId} role="alert" className="text-sm font-medium text-danger-ink">
                 {error}
               </p>
             )}

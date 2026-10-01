@@ -11,20 +11,20 @@ export function TrustSummary({ value, className }: { value: TrustSettings; class
   const { t } = useTranslation()
   const row = 'flex items-center gap-3 py-3'
   return (
-    <ul className={cn('flex flex-col divide-y divide-frost', className)}>
+    <ul className={cn('flex flex-col divide-y divide-line', className)}>
       {CONTROLLABLE_ACTIONS.map((action) => {
         const copy = ACTION_COPY[action]
         const mode = value.modes[action]
         return (
           <li key={action} className={row}>
-            <copy.icon aria-hidden className="size-5 shrink-0 text-paytm-cyan-ink" />
-            <span className="min-w-0 flex-1 font-medium text-paytm-blue">{t(copy.title)}</span>
+            <copy.icon aria-hidden className="size-5 shrink-0 text-accent-ink" />
+            <span className="min-w-0 flex-1 font-medium text-ink">{t(copy.title)}</span>
             <span
               className={cn(
                 'shrink-0 rounded-full px-2.5 py-1 text-sm font-semibold',
-                mode === 'auto' && 'bg-sky-wash text-paytm-cyan-ink',
-                mode === 'ask' && 'bg-mist text-paytm-blue',
-                mode === 'off' && 'bg-cloud text-slate',
+                mode === 'auto' && 'bg-accent-wash text-accent-ink',
+                mode === 'ask' && 'bg-surface-2 text-ink',
+                mode === 'off' && 'bg-well text-slate',
               )}
             >
               {t(MODE_SUMMARY[mode])}
@@ -33,9 +33,9 @@ export function TrustSummary({ value, className }: { value: TrustSettings; class
         )
       })}
       <li className={row}>
-        <Landmark aria-hidden className="size-5 shrink-0 text-paytm-cyan-ink" />
-        <span className="min-w-0 flex-1 font-medium text-paytm-blue">{t('trust.loanTitle')}</span>
-        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-paytm-blue px-2.5 py-1 text-sm font-semibold text-white">
+        <Landmark aria-hidden className="size-5 shrink-0 text-accent-ink" />
+        <span className="min-w-0 flex-1 font-medium text-ink">{t('trust.loanTitle')}</span>
+        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-accent px-2.5 py-1 text-sm font-semibold text-on-accent">
           <Lock aria-hidden className="size-3.5" />
           {t('trust.loanLocked')} · {t('trust.loanYouDecide')}
         </span>

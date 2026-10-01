@@ -4,9 +4,9 @@ import { cn } from '../../lib/cn'
 type Tone = 'cyan' | 'blue' | 'neutral' | 'success' | 'caution'
 
 const toneClasses: Record<Tone, string> = {
-  cyan: 'bg-sky-wash text-paytm-cyan-ink',
-  blue: 'bg-paytm-blue text-white',
-  neutral: 'bg-mist text-paytm-blue',
+  cyan: 'bg-accent-wash text-accent-ink',
+  blue: 'bg-accent text-on-accent',
+  neutral: 'bg-surface-2 text-ink',
   success: 'bg-success-wash text-success-ink',
   caution: 'bg-caution-wash text-caution-ink',
 }

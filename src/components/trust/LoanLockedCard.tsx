@@ -23,8 +23,8 @@ export function LoanLockedCard() {
           <p className="mt-0.5 text-[15px] text-slate">{t('trust.loanExample')}</p>
         </div>
       </div>
-      <div className="flex min-h-12 items-center gap-3 rounded-[20px] bg-paytm-blue px-4 py-3 text-white [box-shadow:var(--clay-shadow-blue)]">
-        <Lock aria-hidden className="size-5 shrink-0 text-paytm-cyan-300" strokeWidth={2.4} />
+      <div className="flex min-h-12 items-center gap-3 rounded-[20px] bg-accent-wash px-4 py-3 text-ink [box-shadow:var(--clay-rim)]">
+        <Lock aria-hidden className="size-5 shrink-0 text-accent-ink" strokeWidth={2.4} />
         <p className="font-semibold">
           {t('trust.loanLocked')} <span aria-hidden>·</span> {t('trust.loanYouDecide')}
         </p>

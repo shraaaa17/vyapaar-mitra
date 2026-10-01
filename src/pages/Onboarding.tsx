@@ -44,7 +44,7 @@ export function Onboarding() {
   if (step === 'done') return <DoneStep onBack={() => go('limits')} />
 
   return (
-    <div className="flex min-h-dvh flex-col bg-cloud">
+    <div className="flex min-h-dvh flex-col bg-well">
       <header className="mx-auto flex w-full max-w-[1160px] items-center justify-between gap-3 px-4 pt-4 md:px-8 md:pt-6">
         <Logo />
         <StepIndicator index={index} />
@@ -78,7 +78,7 @@ export function Onboarding() {
           </AnimatePresence>
 
           {/* Sticky in the thumb zone on phones, inline on wider screens. */}
-          <div className="fixed inset-x-0 bottom-0 z-30 flex gap-3 border-t border-frost/70 bg-white px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))] md:static md:border-0 md:bg-transparent md:p-0">
+          <div className="fixed inset-x-0 bottom-0 z-30 flex gap-3 border-t border-line/70 bg-surface px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))] md:static md:border-0 md:bg-transparent md:p-0">
             {index > 0 && (
               <ClayButton variant="secondary" size="lg" onClick={() => go(STEPS[index - 1])} leadingIcon={<ArrowLeft className="size-5" />}>
                 {/* Icon only on the narrowest phones, so Continue never gets clipped. */}
@@ -104,7 +104,7 @@ function StepIndicator({ index }: { index: number }) {
   const { t } = useTranslation()
   return (
     <div role="group" aria-label={t('onboarding.stepOf', { current: index + 1, total: STEPS.length })} className="flex flex-col items-end gap-1.5">
-      <p className="text-sm font-semibold text-paytm-blue">
+      <p className="text-sm font-semibold text-ink">
         {t('onboarding.stepOf', { current: index + 1, total: STEPS.length })}
         <span className="hidden text-slate sm:inline"> · {t(STEP_LABEL[STEPS[index]])}</span>
       </p>
@@ -113,7 +113,7 @@ function StepIndicator({ index }: { index: number }) {
           <li
             key={s}
             aria-current={i === index ? 'step' : undefined}
-            className={cn('h-2 rounded-full transition-all duration-300', i === index ? 'w-10 bg-paytm-blue' : i < index ? 'w-6 bg-paytm-cyan' : 'w-6 bg-frost')}
+            className={cn('h-2 rounded-full transition-all duration-300', i === index ? 'w-10 bg-accent' : i < index ? 'w-6 bg-accent/45' : 'w-6 bg-line')}
           >
             <span className="sr-only">
               {t(STEP_LABEL[s])}
@@ -138,7 +138,7 @@ function StepHeading({ step }: { step: (typeof STEPS)[number] }) {
   useDocumentTitle(t(title))
   return (
     <div className="flex items-start gap-3">
-      <Illustration name="mitra-avatar" className="size-12 shrink-0 rounded-full bg-sky-wash [box-shadow:var(--clay-shadow-soft)] md:hidden" />
+      <Illustration name="mitra-avatar" className="size-12 shrink-0 rounded-full bg-accent-wash [box-shadow:var(--clay-shadow-soft)] md:hidden" />
       <div>
         <h1 ref={headingRef} tabIndex={-1} className="text-[26px] leading-tight font-bold tracking-[-0.02em] outline-none md:text-[34px]">
           {t(title)}
@@ -177,9 +177,9 @@ function StepScene({ step }: { step: (typeof STEPS)[number] }) {
     return (
       // Bubble above and to the right, so it points at Mitra without covering his face.
       <div className="flex flex-col items-center gap-2">
-        <div className="max-w-[250px] self-end rounded-3xl rounded-bl-md bg-white px-4 py-3 [box-shadow:var(--clay-shadow-soft)] lg:mr-[4%]">
+        <div className="max-w-[250px] self-end rounded-3xl rounded-bl-md bg-surface px-4 py-3 [box-shadow:var(--clay-shadow-soft)] lg:mr-[4%]">
           <p className="text-xs font-semibold text-slate-soft">{t('onboarding.greetingPreview')}</p>
-          <p lang={option.htmlLang} className="mt-1 font-semibold text-paytm-blue">
+          <p lang={option.htmlLang} className="mt-1 font-semibold text-ink">
             {option.sample}
           </p>
         </div>
@@ -216,7 +216,7 @@ function DoneStep({ onBack }: { onBack: () => void }) {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-cloud">
+    <div className="flex min-h-dvh flex-col bg-well">
       <header className="mx-auto flex w-full max-w-[1160px] items-center justify-between px-4 pt-4 md:px-8 md:pt-6">
         <Logo />
       </header>
@@ -238,7 +238,7 @@ function DoneStep({ onBack }: { onBack: () => void }) {
           </div>
           <TrustSummary value={trust} />
           {save.isError && (
-            <p ref={errorRef} tabIndex={-1} role="alert" className="text-sm font-medium text-danger outline-none">
+            <p ref={errorRef} tabIndex={-1} role="alert" className="text-sm font-medium text-danger-ink outline-none">
               {t('onboarding.saveError')}
             </p>
           )}

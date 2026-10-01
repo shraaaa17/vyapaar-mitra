@@ -57,13 +57,13 @@ export const OtpInput = forwardRef<HTMLInputElement, OtpInputProps>(function Otp
             <span
               key={i}
               className={cn(
-                'clay-inset flex h-14 items-center justify-center rounded-2xl text-2xl font-semibold text-paytm-blue tabular-nums transition-shadow sm:h-16',
-                isActive && 'ring-3 ring-paytm-blue-600',
+                'clay-inset flex h-14 items-center justify-center rounded-2xl text-2xl font-semibold text-ink tabular-nums transition-shadow sm:h-16',
+                isActive && 'ring-3 ring-accent',
                 invalid && !isActive && 'ring-2 ring-danger',
                 busy && 'opacity-60',
               )}
             >
-              {digit ?? (isActive ? <span className="h-7 w-0.5 animate-pulse rounded-full bg-paytm-cyan-600" /> : '')}
+              {digit ?? (isActive ? <span className="h-7 w-0.5 animate-pulse rounded-full bg-accent-ink" /> : '')}
             </span>
           )
         })}

@@ -43,8 +43,8 @@ export function ConnectedTrustSettings({ trust, section }: { trust: TrustAutosav
           )}
           {shownStatus === 'failed' && (
             <>
-              <CloudOff aria-hidden className="size-4 text-danger" />
-              <span aria-hidden className="text-danger">
+              <CloudOff aria-hidden className="size-4 text-danger-ink" />
+              <span aria-hidden className="text-danger-ink">
                 {t('trust.saveFailed')}
               </span>
               <ClayButton variant="ghost" size="sm" onClick={() => change(value, section)}>

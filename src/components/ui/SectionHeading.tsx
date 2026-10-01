@@ -3,7 +3,7 @@ import { cn } from '../../lib/cn'
 
 export function Eyebrow({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <p className={cn('text-eyebrow uppercase text-paytm-cyan-ink', className)}>{children}</p>
+    <p className={cn('text-eyebrow uppercase text-accent-ink', className)}>{children}</p>
   )
 }
 

@@ -18,7 +18,7 @@ export function ComingNext({ phase, items, children }: { phase: number; items: s
           <Hammer />
         </IconBubble>
         <div>
-          <p className="font-semibold text-paytm-blue">{t('common.comingNextTitle', { phase })}</p>
+          <p className="font-semibold text-ink">{t('common.comingNextTitle', { phase })}</p>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate">
             {items.map((item) => (
               <li key={item}>{item}</li>

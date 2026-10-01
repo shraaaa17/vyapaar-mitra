@@ -20,7 +20,7 @@ export type MetricCardProps = {
 const deltaClasses: Record<MetricDelta['direction'], string> = {
   up: 'bg-success-wash text-success-ink',
   down: 'bg-caution-wash text-caution-ink',
-  neutral: 'bg-sky-wash text-paytm-cyan-ink',
+  neutral: 'bg-accent-wash text-accent-ink',
 }
 
 /** KPI tile: label, large figure and an optional trend chip. */
@@ -31,7 +31,7 @@ export function MetricCard({ label, value, delta, icon, className }: MetricCardP
         <p className="text-sm font-medium text-slate">{label}</p>
         {icon && <IconBubble size="sm">{icon}</IconBubble>}
       </div>
-      <p className="text-[34px] leading-none font-bold tracking-[-0.03em] text-paytm-blue tabular-nums">
+      <p className="text-[34px] leading-none font-bold tracking-[-0.03em] text-ink tabular-nums">
         {value}
       </p>
       {delta && (

@@ -8,7 +8,7 @@ export function NavBadge({ count, className }: { count: number; className?: stri
   return (
     <span
       className={cn(
-        'inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-paytm-cyan px-1.5 text-[11px] leading-none font-bold text-paytm-blue',
+        'inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[11px] leading-none font-bold text-on-accent',
         className,
       )}
     >

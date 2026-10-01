@@ -18,8 +18,8 @@ function SidebarLink({ item, pendingCount }: { item: AppNavItem; pendingCount: n
         cn(
           'group flex min-h-12 items-center gap-3 rounded-2xl px-4 text-[15px] font-medium transition-all duration-200',
           isActive
-            ? 'bg-white text-paytm-blue [box-shadow:var(--clay-shadow-soft)]'
-            : 'text-slate hover:bg-white/60 hover:text-paytm-blue',
+            ? 'bg-surface text-ink [box-shadow:var(--clay-shadow-soft)]'
+            : 'text-slate hover:bg-surface-2 hover:text-ink',
         )
       }
     >
@@ -28,7 +28,7 @@ function SidebarLink({ item, pendingCount }: { item: AppNavItem; pendingCount: n
           <span
             className={cn(
               'inline-flex size-9 items-center justify-center rounded-xl transition-colors',
-              isActive ? 'bg-paytm-blue text-white' : 'bg-mist text-paytm-blue group-hover:bg-sky-wash',
+              isActive ? 'bg-paytm-blue text-white' : 'bg-surface-2 text-ink group-hover:bg-accent-wash',
             )}
           >
             <Icon aria-hidden className="size-[18px]" />
@@ -48,7 +48,7 @@ export function Sidebar() {
   const { data: merchant } = useMerchant()
 
   return (
-    <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-6 border-r border-frost/70 bg-cloud px-4 py-6 md:flex lg:w-72">
+    <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-6 border-r border-line/70 bg-well px-4 py-6 md:flex lg:w-72">
       <div className="px-2">
         <Logo />
       </div>
@@ -78,7 +78,7 @@ export function Sidebar() {
           {merchant?.name.charAt(0) ?? 'R'}
         </span>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-paytm-blue">{merchant?.storeName ?? t('shell.yourStore')}</p>
+          <p className="truncate text-sm font-semibold text-ink">{merchant?.storeName ?? t('shell.yourStore')}</p>
           <p className="truncate text-xs text-slate-soft">{merchant?.id ?? '···'}</p>
         </div>
         <FloatingOrb size="xs" label={t('shell.watching')} />

@@ -11,7 +11,7 @@ export function MobileHeader() {
   const setMoreOpen = useUi((s) => s.setMoreOpen)
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-frost/60 bg-cloud/95 px-4 md:hidden">
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-line/60 bg-canvas/95 px-4 md:hidden">
       <Link to="/" aria-label={t('shell.homeLink')} className="rounded-full">
         <Logo compact />
       </Link>
@@ -20,7 +20,7 @@ export function MobileHeader() {
         onClick={() => setMoreOpen(true)}
         aria-haspopup="dialog"
         aria-expanded={moreOpen}
-        className="clay-button inline-flex h-12 items-center gap-2 bg-white px-4 text-sm font-semibold text-paytm-blue [box-shadow:var(--clay-shadow-soft)]"
+        className="clay-button inline-flex h-12 items-center gap-2 bg-surface px-4 text-sm font-semibold text-ink [box-shadow:var(--clay-shadow-soft)]"
       >
         <LayoutGrid aria-hidden className="size-[18px]" />
         {t('nav.more')}

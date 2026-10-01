@@ -23,12 +23,12 @@ export type ClayButtonProps = AsButton | AsLink
 
 const variantClasses: Record<Variant, string> = {
   primary:
-    'bg-paytm-blue text-white [box-shadow:var(--clay-shadow-blue)] hover:bg-paytm-blue-800',
+    'bg-accent text-on-accent [box-shadow:var(--clay-shadow-accent)] hover:bg-accent-hover',
   accent:
-    'bg-paytm-cyan text-paytm-blue [box-shadow:var(--clay-shadow-cyan)] hover:bg-[#14c3f5]',
+    'bg-coral-wash text-coral-ink [box-shadow:var(--clay-shadow-soft)] hover:bg-[#fde0e6]',
   secondary:
-    'bg-white text-paytm-blue [box-shadow:var(--clay-shadow-soft)] hover:[box-shadow:var(--clay-shadow-raised)]',
-  ghost: 'bg-transparent text-paytm-blue hover:bg-mist',
+    'bg-surface text-ink [box-shadow:var(--clay-shadow-soft)] hover:[box-shadow:var(--clay-shadow-raised)]',
+  ghost: 'bg-transparent text-ink hover:bg-surface-2',
 }
 
 // Every size keeps the 48px minimum tap target; sm is narrower and quieter, not shorter.

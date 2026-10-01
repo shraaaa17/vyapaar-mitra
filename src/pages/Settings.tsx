@@ -49,8 +49,8 @@ export function Settings() {
         </Section>
         <ComingNext phase={9} items={[t('pages.settings.next1'), t('pages.settings.next2')]} />
         <Section id="settings-account" title={t('pages.settings.account')}>
-          <div className="flex flex-wrap items-center justify-between gap-4 rounded-clay bg-white p-5 [box-shadow:var(--clay-shadow-soft)]">
-            {phone && <p className="font-medium text-paytm-blue">{t('pages.settings.signedInAs', { phone: `+91 ${phone.slice(0, 2)}******${phone.slice(-2)}` })}</p>}
+          <div className="flex flex-wrap items-center justify-between gap-4 rounded-clay bg-surface p-5 [box-shadow:var(--clay-shadow-soft)]">
+            {phone && <p className="font-medium text-ink">{t('pages.settings.signedInAs', { phone: `+91 ${phone.slice(0, 2)}******${phone.slice(-2)}` })}</p>}
             <ClayButton variant="secondary" onClick={signOut} leadingIcon={<LogOut className="size-4" />}>
               {t('pages.settings.signOut')}
             </ClayButton>

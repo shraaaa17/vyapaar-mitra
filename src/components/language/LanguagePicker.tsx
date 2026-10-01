@@ -28,7 +28,7 @@ export function LanguagePicker({
 
   return (
     <fieldset className="min-w-0">
-      <legend className={cn(hideLegend ? 'sr-only' : 'mb-3 text-lg font-semibold text-paytm-blue')}>{legend}</legend>
+      <legend className={cn(hideLegend ? 'sr-only' : 'mb-3 text-lg font-semibold text-ink')}>{legend}</legend>
       <div className="@container">
         <div className="grid gap-3 @lg:grid-cols-2">
           {LANGUAGES.map((language) => {
@@ -38,10 +38,10 @@ export function LanguagePicker({
               <div key={language.code} className="relative">
                 <label
                   className={cn(
-                    'flex min-h-[120px] cursor-pointer flex-col gap-1 rounded-clay bg-white p-4 pr-16 transition-all duration-200',
-                    'has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-3 has-[:focus-visible]:outline-paytm-blue-600',
+                    'flex min-h-[120px] cursor-pointer flex-col gap-1 rounded-clay bg-surface p-4 pr-16 transition-all duration-200',
+                    'has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-3 has-[:focus-visible]:outline-accent',
                     checked
-                      ? 'ring-3 ring-paytm-blue-600 [box-shadow:var(--clay-shadow-raised)]'
+                      ? 'ring-3 ring-accent [box-shadow:var(--clay-shadow-raised)]'
                       : '[box-shadow:var(--clay-shadow-soft)] hover:[box-shadow:var(--clay-shadow-raised)]',
                   )}
                 >
@@ -53,7 +53,7 @@ export function LanguagePicker({
                     onChange={() => onChange(language.code)}
                     className="sr-only"
                   />
-                  <span lang={language.htmlLang} className="text-xl leading-tight font-semibold text-paytm-blue">
+                  <span lang={language.htmlLang} className="text-xl leading-tight font-semibold text-ink">
                     {language.nativeName}
                   </span>
                   {language.englishName !== language.nativeName && (
@@ -68,7 +68,7 @@ export function LanguagePicker({
                     aria-hidden
                     className={cn(
                       'absolute top-4 right-4 flex size-7 items-center justify-center rounded-full transition-all',
-                      checked ? 'bg-paytm-blue text-white' : 'bg-cloud text-transparent [box-shadow:var(--clay-shadow-inset)]',
+                      checked ? 'bg-accent text-on-accent' : 'bg-well text-transparent ring-1 ring-line-strong ring-inset',
                     )}
                   >
                     <Check className="size-4" strokeWidth={3} />
@@ -79,7 +79,7 @@ export function LanguagePicker({
                     type="button"
                     onClick={() => (speaking ? stop() : speak(language.speechSample ?? language.sample, language.code, language.code))}
                     aria-label={speaking ? t('onboarding.stopListening') : t('onboarding.listenTo', { language: language.nativeName })}
-                    className="absolute right-2 bottom-2 flex size-12 items-center justify-center rounded-full text-paytm-cyan-ink transition-colors hover:bg-sky-wash"
+                    className="absolute right-2 bottom-2 flex size-12 items-center justify-center rounded-full text-accent-ink transition-colors hover:bg-accent-wash"
                   >
                     {speaking ? <Square className="size-4 fill-current" /> : <Volume2 className="size-5" />}
                   </button>

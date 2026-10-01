@@ -16,10 +16,10 @@ export type ClayCardProps = HTMLAttributes<HTMLElement> & {
 }
 
 const toneClasses: Record<Tone, string> = {
-  white: 'bg-white',
-  cloud: 'bg-cloud',
-  wash: 'bg-sky-wash',
-  blue: 'bg-paytm-blue text-white',
+  white: 'bg-surface',
+  cloud: 'bg-well',
+  wash: 'bg-accent-wash',
+  blue: 'bg-accent text-on-accent',
 }
 
 const elevationClasses: Record<Elevation, string> = {
@@ -52,7 +52,7 @@ export function ClayCard({
         'relative',
         toneClasses[tone],
         elevationClasses[elevation],
-        tone === 'blue' && elevation !== 'inset' && '[box-shadow:var(--clay-shadow-blue)]',
+        tone === 'blue' && elevation !== 'inset' && '[box-shadow:var(--clay-shadow-accent)]',
         paddingClasses[padding],
         interactive && 'clay-lift',
         className,

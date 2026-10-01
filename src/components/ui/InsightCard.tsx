@@ -61,8 +61,8 @@ export function InsightCard({
 
       {recommendation && (
         <div className="clay-inset rounded-clay-sm px-4 py-3 text-sm">
-          <p className="text-xs font-semibold tracking-[0.12em] text-paytm-cyan-ink uppercase">Recommended</p>
-          <p className="mt-1 font-medium text-paytm-blue">{recommendation}</p>
+          <p className="text-xs font-semibold tracking-[0.12em] text-accent-ink uppercase">Recommended</p>
+          <p className="mt-1 font-medium text-ink">{recommendation}</p>
         </div>
       )}
 

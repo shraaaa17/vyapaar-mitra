@@ -34,7 +34,7 @@ export function SpendCapStepper({ value, onChange }: { value: number; onChange: 
   }
 
   const perRegular = Math.floor(value / REGULARS_COUNT)
-  const round = 'flex size-12 shrink-0 items-center justify-center rounded-full bg-white text-paytm-blue [box-shadow:var(--clay-shadow-soft)] transition-transform active:scale-95 disabled:opacity-40'
+  const round = 'flex size-12 shrink-0 items-center justify-center rounded-full bg-surface text-ink [box-shadow:var(--clay-shadow-soft)] transition-transform active:scale-95 disabled:opacity-40'
 
   return (
     <div className="flex flex-col gap-3">
@@ -60,7 +60,7 @@ export function SpendCapStepper({ value, onChange }: { value: number; onChange: 
           aria-valuenow={value}
           aria-valuetext={formatINR(value)}
           onKeyDown={onKeyDown}
-          className="min-w-0 flex-1 rounded-2xl py-1 text-center text-[40px] leading-tight font-bold tracking-[-0.02em] text-paytm-blue tabular-nums"
+          className="min-w-0 flex-1 rounded-2xl py-1 text-center text-[40px] leading-tight font-bold tracking-[-0.02em] text-ink tabular-nums"
         >
           {formatINR(value)}
         </div>

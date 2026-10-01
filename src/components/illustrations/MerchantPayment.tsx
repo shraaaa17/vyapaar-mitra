@@ -171,7 +171,7 @@ export function MerchantPayment({ className, amount = 250 }: MerchantPaymentProp
                             key={i}
                             d={`M ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2}`}
                             fill="none"
-                            stroke="#00b9f1"
+                            stroke="#00baf2"
                             strokeWidth={9}
                             strokeLinecap="round"
                             initial={{ opacity: 0, pathLength: 0.3 }}
@@ -195,14 +195,14 @@ export function MerchantPayment({ className, amount = 250 }: MerchantPaymentProp
           <motion.div
             aria-hidden
             key="bubble"
-            className="absolute top-[27%] left-[64%] z-10 flex items-center gap-1.5 rounded-2xl rounded-bl-md bg-white px-3 py-2 text-sm font-semibold whitespace-nowrap text-paytm-blue [box-shadow:var(--clay-shadow-soft)] sm:text-[15px]"
+            className="absolute top-[27%] left-[64%] z-10 flex items-center gap-1.5 rounded-2xl rounded-bl-md bg-surface px-3 py-2 text-sm font-semibold whitespace-nowrap text-ink [box-shadow:var(--clay-shadow-soft)] sm:text-[15px]"
             initial={reduce ? false : { opacity: 0, scale: 0.6, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: -6, transition: { duration: 0.25 } }}
             transition={{ type: 'spring', stiffness: 380, damping: 20, delay: reduce ? 0 : 0.2 }}
             style={{ originX: 0, originY: 1 }}
           >
-            <Volume2 className="size-4 shrink-0 text-paytm-cyan-ink" strokeWidth={2.4} />
+            <Volume2 className="size-4 shrink-0 text-accent-ink" strokeWidth={2.4} />
             {t('illustrations.paymentReceived', { amount: `₹${amount.toLocaleString('en-IN')}` })}
           </motion.div>
         )}

@@ -20,7 +20,7 @@ export function AppShell() {
           event.preventDefault()
           document.getElementById('main')?.focus()
         }}
-        className="sr-only z-[60] rounded-full bg-paytm-blue px-5 py-3 font-semibold text-white focus:not-sr-only focus:fixed focus:top-4 focus:left-4"
+        className="sr-only z-[60] rounded-full bg-accent px-5 py-3 font-semibold text-on-accent focus:not-sr-only focus:fixed focus:top-4 focus:left-4"
       >
         {t('shell.skipToContent')}
       </a>

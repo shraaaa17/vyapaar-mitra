@@ -18,7 +18,7 @@ export function AuthLayout({ bubble, children }: { bubble: string; children: Rea
   ]
 
   return (
-    <div className="flex min-h-dvh flex-col bg-cloud">
+    <div className="flex min-h-dvh flex-col bg-well">
       <header className="mx-auto flex w-full max-w-[1160px] items-center justify-between gap-3 px-4 pt-4 md:px-8 md:pt-6">
         <Logo />
         <LanguageSelect />
@@ -30,7 +30,7 @@ export function AuthLayout({ bubble, children }: { bubble: string; children: Rea
       >
         <section className="relative flex items-end gap-2 md:flex-col md:items-center md:gap-6">
           {/* Soft stage behind Mitra (wide screens) */}
-          <div aria-hidden className="pointer-events-none absolute inset-x-[6%] top-[4%] bottom-[22%] hidden rounded-full bg-[radial-gradient(closest-side,#d6f3fd,rgb(214_243_253/0))] md:block" />
+          <div aria-hidden className="pointer-events-none absolute inset-x-[6%] top-[4%] bottom-[22%] hidden rounded-full bg-[radial-gradient(closest-side,rgb(0_186_242/0.14),rgb(0_186_242/0))] md:block" />
           <div aria-hidden className="pointer-events-none absolute inset-0 hidden lg:block">
             <span className="absolute top-[8%] left-[6%]">
               <FloatingOrb size="md" float className="opacity-80" />
@@ -44,7 +44,7 @@ export function AuthLayout({ bubble, children }: { bubble: string; children: Rea
           <div className="relative flex w-full items-end gap-1 md:max-w-[440px] md:flex-col-reverse md:items-center md:gap-2">
             <MitraHero className="h-[168px] shrink-0 sm:h-[200px] md:h-[min(46vh,420px)]" />
             <p
-              className="relative mb-auto ml-1 min-w-0 rounded-3xl rounded-bl-md bg-white px-4 py-3 text-[15px] leading-snug font-semibold text-paytm-blue [box-shadow:var(--clay-shadow-soft)] md:mb-0 md:ml-0 md:max-w-[260px] md:self-end md:text-base"
+              className="relative mb-auto ml-1 min-w-0 rounded-3xl rounded-bl-md bg-surface px-4 py-3 text-[15px] leading-snug font-semibold text-ink [box-shadow:var(--clay-shadow-soft)] md:mb-0 md:ml-0 md:max-w-[260px] md:self-end md:text-base"
               aria-live="polite"
             >
               {bubble}
@@ -53,8 +53,8 @@ export function AuthLayout({ bubble, children }: { bubble: string; children: Rea
 
           <ul className="hidden w-full max-w-[460px] flex-col gap-2.5 lg:flex">
             {promises.map(({ icon: Icon, text }) => (
-              <li key={text} className="flex items-center gap-3 rounded-2xl bg-white/70 px-4 py-2.5 text-[15px] font-medium text-paytm-blue [box-shadow:var(--clay-shadow-soft)]">
-                <Icon aria-hidden className="size-5 shrink-0 text-paytm-cyan-ink" />
+              <li key={text} className="flex items-center gap-3 rounded-2xl bg-surface/70 px-4 py-2.5 text-[15px] font-medium text-ink [box-shadow:var(--clay-shadow-soft)]">
+                <Icon aria-hidden className="size-5 shrink-0 text-accent-ink" />
                 {text}
               </li>
             ))}

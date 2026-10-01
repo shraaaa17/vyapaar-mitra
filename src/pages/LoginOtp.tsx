@@ -94,7 +94,7 @@ export function LoginOtp({ pending }: { pending: PendingOtp }) {
               type="button"
               onClick={() => navigate('/login')}
               disabled={verify.isPending}
-              className="inline-flex min-h-12 items-center gap-1 font-semibold text-paytm-cyan-ink underline-offset-4 hover:underline disabled:opacity-50"
+              className="inline-flex min-h-12 items-center gap-1 font-semibold text-accent-ink underline-offset-4 hover:underline disabled:opacity-50"
             >
               <ArrowLeft aria-hidden className="size-4" />
               {t('auth.changeNumber')}
@@ -119,7 +119,7 @@ export function LoginOtp({ pending }: { pending: PendingOtp }) {
             autoFocus
           />
           {error && (
-            <p id={errorId} role="alert" className="text-sm font-medium text-danger">
+            <p id={errorId} role="alert" className="text-sm font-medium text-danger-ink">
               {error}
             </p>
           )}

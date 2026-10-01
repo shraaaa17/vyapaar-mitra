@@ -58,7 +58,7 @@ export function TrustActionCard({
 
       <div className="flex flex-col gap-2">
         {/* Only this line is live: it says what the choice just made means. */}
-        <p id={whatId} aria-live="polite" className="text-[15px] font-medium text-paytm-blue">
+        <p id={whatId} aria-live="polite" className="text-[15px] font-medium text-ink">
           {t(MODE_WHAT[mode])}
         </p>
         <AnimatePresence initial={false}>
