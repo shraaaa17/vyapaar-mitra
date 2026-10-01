@@ -5,7 +5,6 @@ import {
   AskCard,
   BillCard,
   DipInsightCard,
-  MoreSections,
   SoundboxCard,
   TodayCard,
 } from '../components/counter'
@@ -13,8 +12,9 @@ import { PageHeader } from '../components/layout/PageHeader'
 
 /**
  * The merchant's home screen at the till. Today's sales and the dip insight
- * on top; billing, Ask and links to every other section on the left; the
- * Soundbox, approvals and agent activity on the right. One column on phones.
+ * on top; billing and Ask on the left; the Soundbox, approvals and agent
+ * activity on the right. One column on phones. Other sections are in the
+ * header tabs (bottom tabs and More on phones).
  */
 export function Counter() {
   const { t } = useTranslation()
@@ -29,8 +29,6 @@ export function Counter() {
         <div className="flex flex-col gap-5 lg:gap-6">
           <BillCard />
           <AskCard />
-          {/* On wide screens the section links fill the shorter left column; phones get them at the end. */}
-          <MoreSections className="hidden lg:block" stacked />
         </div>
         <div className="flex flex-col gap-5 lg:gap-6">
           <SoundboxCard />
@@ -38,7 +36,6 @@ export function Counter() {
           <ActivityCard />
         </div>
       </div>
-      <MoreSections className="mt-8 lg:hidden" />
     </>
   )
 }

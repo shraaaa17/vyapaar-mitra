@@ -369,17 +369,6 @@ export const en = {
       whatsappReward: 'Visit {{visits}}! Your loyalty discount is ready for your next purchase.',
       whatsappWelcomeBack: 'We missed you! Thank you for shopping with us again.',
     },
-    sections: {
-      title: 'More from Mitra',
-      campaigns: 'WhatsApp offers and how they did',
-      regulars: 'Your loyal customers, kept private',
-      credit: 'Cash forecast, reorders and loans',
-      impact: 'What changed and what Mitra learned',
-      trust: 'Trust settings',
-      trustBody: 'What Mitra may do on its own',
-      language: 'Language',
-      languageBody: 'Switches the whole app and the Soundbox voice',
-    },
   },
   pages: {
     actions: {

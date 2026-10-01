@@ -371,17 +371,6 @@ export const hinglish = {
       whatsappReward: 'Visit {{visits}}! Aapki agli khareed par loyalty discount taiyaar hai.',
       whatsappWelcomeBack: 'Aapki kami khal rahi thi! Phir se aane ke liye shukriya.',
     },
-    sections: {
-      title: 'Mitra mein aur',
-      campaigns: 'WhatsApp offers aur unke nateeje',
-      regulars: 'Aapke pakke grahak, poori privacy ke saath',
-      credit: 'Cash ka andaaza, reorder aur loan',
-      impact: 'Kya badla aur Mitra ne kya seekha',
-      trust: 'Trust settings',
-      trustBody: 'Mitra khud kya kar sakta hai',
-      language: 'Bhasha',
-      languageBody: 'Poora app aur Soundbox ki awaaz badalta hai',
-    },
   },
   pages: {
     actions: {

@@ -69,7 +69,7 @@ src/
   pages/            Login, Onboarding, Counter (home), Actions, Campaigns, Regulars, Credit, Impact, AskMitra, Settings
   components/
     ui/             clay primitives
-    counter/        New bill, Ask, Soundbox, approvals, agent activity, dip insight, section tiles
+    counter/        New bill, card linking, Ask, Soundbox, approvals, agent activity, dip insight, CounterSync (live payments)
     layout/         AppShell, AppHeader (section tabs ≥768px), BottomTabs + MoreSheet (<768px), route guards
     auth/           sign-in frame with Mitra
     trust/          Trust Settings panels (onboarding and Settings share them)
