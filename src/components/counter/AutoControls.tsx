@@ -1,4 +1,5 @@
 import { Pause, Play, Undo2 } from 'lucide-react'
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNow } from '../../hooks/useNow'
 import type { AgentAction } from '../../mocks/types'
@@ -30,9 +31,17 @@ export function AutoControls({
   const undoLeft = action.undoUntil ? Math.ceil((new Date(action.undoUntil).getTime() - now) / 60_000) : 0
   const canUndo = live && undoLeft > 0
 
+  // Undo (or the undo window closing) removes the button that had focus; keep the keyboard on this card.
+  const lastFocused = useRef<HTMLElement | null>(null)
+  const whyRef = useRef<HTMLButtonElement>(null)
+  useEffect(() => {
+    const gone = lastFocused.current && !lastFocused.current.isConnected
+    if (gone && (document.activeElement === document.body || !document.activeElement)) whyRef.current?.focus()
+  }, [live, canUndo])
+
   return (
     <>
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2" onFocus={(e) => (lastFocused.current = e.target)}>
         {live && (
           <ClayButton
             size="sm"
@@ -55,7 +64,7 @@ export function AutoControls({
             {t('counter.approvals.undo')}
           </ClayButton>
         )}
-        <WhyButton {...why} className={live ? 'ml-auto' : '-ml-3'} />
+        <WhyButton {...why} ref={whyRef} className={live ? 'ml-auto' : '-ml-3'} />
       </div>
       {live && (
         <p className="text-sm text-slate-soft">

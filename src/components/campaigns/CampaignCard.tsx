@@ -65,11 +65,14 @@ export function CampaignCard({
             {t('pages.campaigns.audienceNote')}
           </span>
         </p>
-        {(status === 'paused' || status === 'stopped') && (
-          <p className="rounded-xl bg-well px-3 py-2 text-sm font-medium text-ink">
-            {t(status === 'paused' ? 'pages.campaigns.pausedNote' : 'pages.campaigns.stoppedNote')}
-          </p>
-        )}
+        {/* Always present, so pausing or undoing is announced, not just shown. */}
+        <div role="status" className="empty:-mt-3">
+          {(status === 'paused' || status === 'stopped') && (
+            <p className="rounded-xl bg-well px-3 py-2 text-sm font-medium text-ink">
+              {t(status === 'paused' ? 'pages.campaigns.pausedNote' : 'pages.campaigns.stoppedNote')}
+            </p>
+          )}
+        </div>
       </header>
 
       <div className="grid gap-6 lg:grid-cols-2 lg:gap-x-8">

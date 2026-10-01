@@ -3,6 +3,7 @@ import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { PageHeader } from '../components/layout/PageHeader'
 import { RegularCard } from '../components/regulars/RegularCard'
+import { rewardState } from '../components/regulars/reward'
 import { EmptyState, ErrorState, MetricCard, Skeleton } from '../components/ui'
 import { useRegulars } from '../hooks/queries'
 import { useNow } from '../hooks/useNow'
@@ -17,7 +18,7 @@ export function Regulars() {
     () => [...(data?.regulars ?? [])].sort((a, b) => b.visits - a.visits || Date.parse(b.lastVisit) - Date.parse(a.lastVisit)),
     [data],
   )
-  const ready = regulars.filter((r) => r.reward.status === 'earned')
+  const ready = regulars.filter((r) => rewardState(r).kind === 'ready')
   const every = regulars[0]?.reward.everyNVisits ?? 12
 
   return (

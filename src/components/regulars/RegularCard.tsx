@@ -56,12 +56,13 @@ export function RegularCard({ regular, now }: { regular: Regular; now: number })
             <h3 lang="en" className="font-semibold text-ink tabular-nums">
               {regular.masked}
             </h3>
-            <p className="text-sm text-slate">
-              {lastVisit}
-              <span aria-hidden className="px-1.5">
-                ·
+            {/* Wraps between the two facts, never inside one. */}
+            <p className="flex flex-wrap gap-x-3 text-sm text-slate">
+              <span>
+                {lastVisit}
+                <span className="sr-only">, </span>
               </span>
-              {t('pages.regulars.avgBill', { amount: formatINR(regular.avgBasket) })}
+              <span className="whitespace-nowrap">{t('pages.regulars.avgBill', { amount: formatINR(regular.avgBasket) })}</span>
             </p>
           </div>
         </div>

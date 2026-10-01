@@ -27,7 +27,12 @@ export function Funnel({ funnel }: { funnel: Campaign['funnel'] }) {
               <span className={cn('text-sm', last ? 'font-semibold text-ink' : 'text-slate')}>{t(`pages.campaigns.${step}`)}</span>
               <span className="text-right">
                 <span className="text-lg font-bold text-ink tabular-nums">{funnel[step]}</span>
-                {step !== 'sent' && <span className="ml-2 text-sm text-slate tabular-nums">{t('pages.campaigns.ofSent', { pct })}</span>}
+                {step !== 'sent' && (
+                  <>
+                    {' '}
+                    <span className="ml-1 text-sm text-slate tabular-nums">{t('pages.campaigns.ofSent', { pct })}</span>
+                  </>
+                )}
               </span>
             </p>
             <span aria-hidden className="mt-1.5 block h-2.5 overflow-hidden rounded-full bg-well">
@@ -55,14 +60,13 @@ export function CostVsSales({ campaign, cap }: { campaign: Campaign; cap?: numbe
     <div className="grid gap-4 lg:grid-cols-2 lg:items-start lg:gap-x-8">
       <dl className="flex flex-col gap-3">
         {rows.map((row) => (
-          <div key={row.label}>
-            <div className="flex items-baseline justify-between gap-3">
-              <dt className="text-sm text-slate">{row.label}</dt>
-              <dd className="text-lg font-bold text-ink tabular-nums">{formatINR(row.value)}</dd>
-            </div>
-            <span aria-hidden className="mt-1.5 block h-2.5 overflow-hidden rounded-full bg-well">
+          <div key={row.label} className="grid grid-cols-[1fr_auto] items-baseline gap-x-3">
+            <dt className="text-sm text-slate">{row.label}</dt>
+            <dd className="text-lg font-bold text-ink tabular-nums">{formatINR(row.value)}</dd>
+            {/* The bar only pictures the figure above it. */}
+            <dd aria-hidden className="col-span-2 mt-1.5 h-2.5 overflow-hidden rounded-full bg-well">
               <span className={cn('block h-full rounded-full', row.bar)} style={{ width: `${percent(row.value, scale)}%` }} />
-            </span>
+            </dd>
           </div>
         ))}
       </dl>

@@ -129,7 +129,8 @@ type CardProps = {
   onDecide: Decide
 }
 
-function CardHead({ action }: { action: AgentAction }) {
+/** Pending cards sit right under the card's h2; automatic ones under the "Done automatically" h3. */
+function CardHead({ action, level: Heading }: { action: AgentAction; level: 'h3' | 'h4' }) {
   const { t } = useTranslation()
   const Icon = TYPE_ICON[action.type]
   return (
@@ -145,9 +146,9 @@ function CardHead({ action }: { action: AgentAction }) {
             {t(RISK_LABEL[action.risk])}
           </span>
         </p>
-        <h4 lang="en" className="mt-1 leading-snug font-semibold text-ink">
+        <Heading lang="en" className="mt-1 leading-snug font-semibold text-ink">
           {action.title}
-        </h4>
+        </Heading>
         <p lang="en" className="mt-0.5 text-sm text-slate">
           {action.summary}
         </p>
@@ -165,7 +166,7 @@ function PendingCard({ action, busy, failed, onDecide }: CardProps) {
 
   return (
     <article className="flex flex-col gap-3 rounded-[22px] border border-line bg-surface p-4">
-      <CardHead action={action} />
+      <CardHead action={action} level="h3" />
 
       <p className="rounded-xl bg-caution-wash px-3 py-2 text-sm text-caution-ink">
         <span className="font-semibold">{t('counter.approvals.whyWaits')}</span> {reason}
@@ -263,7 +264,7 @@ function AutoCard({ action, busy, failed, onDecide }: CardProps) {
 
   return (
     <article className="flex flex-col gap-3 rounded-[22px] border border-line bg-surface p-4">
-      <CardHead action={action} />
+      <CardHead action={action} level="h4" />
       <dl className="flex flex-wrap gap-2 text-sm">
         {action.executedAt && (
           <div className="rounded-xl bg-well px-3 py-1.5">

@@ -1,14 +1,22 @@
 import { ChevronDown } from 'lucide-react'
+import type { Ref } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '../../lib/cn'
 import type { ActionWhy } from '../../mocks/types'
 import type { WhyState } from './useWhy'
 
 /** "Why?" toggle; it opens the panel below with the data used, pattern found and confidence. */
-export function WhyButton({ open, toggle, panelId, className }: WhyState & { className?: string }) {
+export function WhyButton({
+  open,
+  toggle,
+  panelId,
+  className,
+  ref,
+}: WhyState & { className?: string; ref?: Ref<HTMLButtonElement> }) {
   const { t } = useTranslation()
   return (
     <button
+      ref={ref}
       type="button"
       onClick={toggle}
       aria-expanded={open}

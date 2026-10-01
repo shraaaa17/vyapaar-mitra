@@ -463,7 +463,7 @@ function answerQuery({ question, language }: QueryRequest): QueryResponse {
     }
     case 'regulars':
       return {
-        answer: say.regulars({ returning: today.returning, total: db.regulars.total, thisWeek: 28 }),
+        answer: say.regulars({ returning: today.returning, total: db.regulars.total, thisWeek: db.regulars.total - STORY.quietRegulars }),
         card: { type: 'metric', label: labels.returningToday, value: String(today.returning), caption: labels.ofRegulars(db.regulars.total) },
         followUps: [],
       }
