@@ -36,8 +36,8 @@ import type {
  * undos and settings survive a page refresh.
  */
 
-// v2: the counter moved to checkouts, linked cards and customer tags.
-const STORAGE_KEY = 'vm-mock-db-v2'
+// v3: regulars count WhatsApp opt-ins separately (v2: the counter moved to checkouts, linked cards and customer tags).
+const STORAGE_KEY = 'vm-mock-db-v3'
 
 export class MockApiError extends Error {
   status: number
@@ -463,7 +463,7 @@ function answerQuery({ question, language }: QueryRequest): QueryResponse {
     }
     case 'regulars':
       return {
-        answer: say.regulars({ returning: today.returning, total: db.regulars.total, thisWeek: 28 }),
+        answer: say.regulars({ returning: today.returning, total: db.regulars.total, thisWeek: db.regulars.total - STORY.quietRegulars }),
         card: { type: 'metric', label: labels.returningToday, value: String(today.returning), caption: labels.ofRegulars(db.regulars.total) },
         followUps: [],
       }

@@ -166,7 +166,11 @@ export type Regular = {
 }
 
 export type RegularsResponse = {
+  /** All regulars. */
   total: number
+  /** Regulars who agreed to WhatsApp messages. Only they get offers. */
+  optedIn: number
+  /** The most frequent regulars, masked. */
   regulars: Regular[]
 }
 

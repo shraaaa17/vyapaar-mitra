@@ -17,7 +17,7 @@ import type {
 /**
  * Seed data for the Ramesh pilot story. Every number that appears on more than
  * one screen is defined once here so the app stays consistent everywhere:
- * yesterday ₹8,400 (−18% vs last Tuesday), 40 regulars, WhatsApp offer
+ * yesterday ₹8,400 (−18% vs last Tuesday), 42 regulars (40 on WhatsApp), WhatsApp offer
  * auto-sent, 12th-visit reward, Tuesday ₹10,900 (+30%, pilot simulation),
  * cash crunch in 6 days, a detergent restock and a recommend-only loan
  * waiting, and ₹670 taken at the counter so far today (3 payments).
@@ -27,7 +27,10 @@ export const STORY = {
   yesterdaySales: 8_400,
   lastTuesdaySales: 10_240,
   dipPct: -18,
+  /** Regulars who agreed to WhatsApp messages: the audience for offers. */
   regularsCount: 40,
+  /** All regulars, including the 2 who haven't agreed to WhatsApp. */
+  regularsTotal: 42,
   afterSales: 10_900,
   upliftPct: 30,
   cashCrunchInDays: 6,
@@ -186,7 +189,7 @@ export function createSeed(now = new Date()): MockDatabase {
       title: 'Tuesday offer sent to 40 regulars on WhatsApp',
       summary: '10% off (max ₹50) on bills above ₹300, valid next Tuesday.',
       why: {
-        dataUsed: ['Last 8 Tuesdays of UPI sales', 'Visit history of your 40 regulars', 'Past offer redemptions'],
+        dataUsed: ['Last 8 Tuesdays of UPI sales', 'Visit history of your 40 regulars on WhatsApp', 'Past offer redemptions'],
         pattern: 'Tuesday sales have been lower than other weekdays for 6 of the last 8 weeks.',
         confidence: 0.88,
       },
@@ -258,7 +261,7 @@ export function createSeed(now = new Date()): MockDatabase {
         kind: 'sales_dip',
         rank: 1,
         title: 'Tuesday sales keep dipping',
-        detail: 'I sent a Tuesday offer to your 40 regulars. You can undo it for 30 minutes.',
+        detail: 'I sent a Tuesday offer to your 40 regulars on WhatsApp. You can undo it for 30 minutes.',
         impactRupees: 2_500,
         impactLabel: '+₹2,500 expected',
         risk: 'low',
@@ -337,15 +340,20 @@ export function createSeed(now = new Date()): MockDatabase {
   const maskedIds = ['37', '12', '85', '09', '64', '21', '50', '73', '46', '18']
   const visits = [12, 11, 10, 9, 9, 8, 7, 6, 5, 4]
   const baskets = [640, 420, 380, 510, 290, 350, 460, 300, 270, 330]
+  // Days since each last came. ****37's last visit is the 12th-visit reward (act_loyalty_12th, 20 hours ago);
+  // ****85 and ****46 come in this morning, which the counter seed below records.
+  const lastVisitDays = [0, 1, 3, 2, 1, 2, 3, 4, 4, 6]
   const regulars: RegularsResponse = {
-    total: STORY.regularsCount,
+    total: STORY.regularsTotal,
+    optedIn: STORY.regularsCount,
     regulars: maskedIds.map((suffix, i) => ({
       id: `cust_${suffix}`,
       masked: `Cust ****${suffix}`,
       visits: visits[i],
-      lastVisit: minutesAgo(now, 60 * 24 * (i % 4) + 60 * (i + 1)),
+      lastVisit: minutesAgo(now, i === 0 ? 60 * 20 : 60 * 24 * lastVisitDays[i]),
       avgBasket: baskets[i],
-      reward: { status: visits[i] >= 12 ? 'redeemed' : visits[i] === 11 ? 'earned' : 'progress', everyNVisits: 12 },
+      // Cust ****37 has had the 12th-visit reward; the counter flags the next one as it happens.
+      reward: { status: visits[i] >= 12 ? 'redeemed' : 'progress', everyNVisits: 12 },
       consent: i === 6 || i === 9 ? { whatsappOptIn: false } : { whatsappOptIn: true, optedInAt: minutesAgo(now, 60 * 24 * (30 + i * 5)) },
     })),
   }
@@ -359,7 +367,7 @@ export function createSeed(now = new Date()): MockDatabase {
       simulated: true,
     },
     learned: [
-      '14 of 40 regulars used the offer; most came between 6 and 8 pm.',
+      '14 of the 40 regulars who got the offer used it; most came between 6 and 8 pm.',
       'Bills with the offer averaged ₹520, well above the ₹300 minimum.',
       'Customers who hadn’t visited for 10+ days responded the most.',
     ],

@@ -1,17 +1,17 @@
-import { ArrowRight, BellRing, Landmark, Megaphone, Package, Pause, Play, Tag, Undo2, type LucideIcon } from 'lucide-react'
+import { ArrowRight, BellRing, Landmark, Megaphone, Package, Tag, type LucideIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { useActionDecision, useActions } from '../../hooks/queries'
-import { useNow } from '../../hooks/useNow'
+import { useActions } from '../../hooks/queries'
 import { getLanguage } from '../../i18n/languages'
 import { cn } from '../../lib/cn'
 import { formatINR } from '../../lib/format'
-import type { ActionDecisionRequest, ActionType, AgentAction, RiskLevel } from '../../mocks/types'
-import { useCounter, type Line } from '../../store/counter'
+import type { ActionType, AgentAction, RiskLevel } from '../../mocks/types'
 import { useSession } from '../../store/session'
 import { ClayButton, ClayCard, ErrorState, Skeleton } from '../ui'
+import { AutoControls } from './AutoControls'
 import { clockTime } from './lines'
+import { useDecide, type Decide } from './useDecide'
 import { useWhy } from './useWhy'
 import { WhyButton, WhyPanel } from './WhyPanel'
 
@@ -29,22 +29,6 @@ const RISK_LABEL = {
   high: 'counter.approvals.riskHigh',
 } as const
 
-/** What a confirmed decision adds to the activity feed, under "You". */
-function decisionLine(action: AgentAction, { decision }: ActionDecisionRequest): Line {
-  switch (decision) {
-    case 'approve':
-      return action.loan ? { key: 'counter.lines.loanApplied', params: { amount: action.loan.amount } } : { key: 'counter.lines.approved' }
-    case 'reject':
-      return { key: 'counter.lines.rejected' }
-    case 'pause':
-      return { key: 'counter.lines.paused', params: { type: action.type } }
-    case 'resume':
-      return { key: 'counter.lines.resumed', params: { type: action.type } }
-    case 'undo':
-      return { key: 'counter.lines.undone', params: { type: action.type } }
-  }
-}
-
 /** Why a pending action waits for the merchant instead of running on its own. */
 function useWaitReason(action: AgentAction) {
   const { t } = useTranslation()
@@ -60,16 +44,7 @@ function useWaitReason(action: AgentAction) {
 export function ApprovalsCard() {
   const { t } = useTranslation()
   const { data, isPending, isError, refetch } = useActions()
-  const [failedId, setFailedId] = useState<string | null>(null)
-  const decision = useActionDecision((action, request) =>
-    useCounter.getState().log('ai', { key: 'counter.feed.you' }, decisionLine(action, request)),
-  )
-
-  const decide = (request: ActionDecisionRequest) => {
-    setFailedId(null)
-    decision.mutate(request, { onError: () => setFailedId(request.actionId) })
-  }
-  const busyId = decision.isPending ? decision.variables?.actionId : undefined
+  const { decide, busyId, failedId } = useDecide()
 
   const pending = data?.filter((a) => a.status === 'pending') ?? []
   const auto = data?.filter((a) => a.status === 'auto_done' || a.status === 'paused') ?? []
@@ -151,10 +126,11 @@ type CardProps = {
   action: AgentAction
   busy: boolean
   failed: boolean
-  onDecide: (request: ActionDecisionRequest) => void
+  onDecide: Decide
 }
 
-function CardHead({ action }: { action: AgentAction }) {
+/** Pending cards sit right under the card's h2; automatic ones under the "Done automatically" h3. */
+function CardHead({ action, level: Heading }: { action: AgentAction; level: 'h3' | 'h4' }) {
   const { t } = useTranslation()
   const Icon = TYPE_ICON[action.type]
   return (
@@ -170,9 +146,9 @@ function CardHead({ action }: { action: AgentAction }) {
             {t(RISK_LABEL[action.risk])}
           </span>
         </p>
-        <h4 lang="en" className="mt-1 leading-snug font-semibold text-ink">
+        <Heading lang="en" className="mt-1 leading-snug font-semibold text-ink">
           {action.title}
-        </h4>
+        </Heading>
         <p lang="en" className="mt-0.5 text-sm text-slate">
           {action.summary}
         </p>
@@ -190,7 +166,7 @@ function PendingCard({ action, busy, failed, onDecide }: CardProps) {
 
   return (
     <article className="flex flex-col gap-3 rounded-[22px] border border-line bg-surface p-4">
-      <CardHead action={action} />
+      <CardHead action={action} level="h3" />
 
       <p className="rounded-xl bg-caution-wash px-3 py-2 text-sm text-caution-ink">
         <span className="font-semibold">{t('counter.approvals.whyWaits')}</span> {reason}
@@ -283,16 +259,12 @@ function LoanCheck({ action, busy, onConfirm, onCancel }: { action: AgentAction;
 
 function AutoCard({ action, busy, failed, onDecide }: CardProps) {
   const { t } = useTranslation()
-  const why = useWhy()
   const language = useSession((s) => s.language)
-  const now = useNow(15_000)
   const paused = action.status === 'paused'
-  const undoLeft = action.undoUntil ? Math.ceil((new Date(action.undoUntil).getTime() - now) / 60_000) : 0
-  const canUndo = undoLeft > 0
 
   return (
     <article className="flex flex-col gap-3 rounded-[22px] border border-line bg-surface p-4">
-      <CardHead action={action} />
+      <CardHead action={action} level="h4" />
       <dl className="flex flex-wrap gap-2 text-sm">
         {action.executedAt && (
           <div className="rounded-xl bg-well px-3 py-1.5">
@@ -309,38 +281,7 @@ function AutoCard({ action, busy, failed, onDecide }: CardProps) {
           </div>
         )}
       </dl>
-      <div className="flex flex-wrap items-center gap-2">
-        <ClayButton
-          size="sm"
-          variant="secondary"
-          aria-disabled={busy || undefined}
-          onClick={() => !busy && onDecide({ actionId: action.id, decision: paused ? 'resume' : 'pause' })}
-          leadingIcon={paused ? <Play className="size-4" /> : <Pause className="size-4" />}
-        >
-          {paused ? t('counter.approvals.resume') : t('counter.approvals.pause')}
-        </ClayButton>
-        {canUndo && (
-          <ClayButton
-            size="sm"
-            variant="secondary"
-            aria-disabled={busy || undefined}
-            onClick={() => !busy && onDecide({ actionId: action.id, decision: 'undo' })}
-            leadingIcon={<Undo2 className="size-4" />}
-          >
-            {t('counter.approvals.undo')}
-          </ClayButton>
-        )}
-        <WhyButton {...why} className="ml-auto" />
-      </div>
-      <p className="text-sm text-slate-soft">
-        {canUndo ? t('counter.approvals.undoLeft', { count: undoLeft }) : t('counter.approvals.undoClosed')}
-      </p>
-      {failed && (
-        <p role="alert" className="text-sm font-medium text-danger-ink">
-          {t('counter.approvals.failed')}
-        </p>
-      )}
-      <WhyPanel why={action.why} open={why.open} panelId={why.panelId} />
+      <AutoControls action={action} busy={busy} failed={failed} onDecide={onDecide} />
     </article>
   )
 }

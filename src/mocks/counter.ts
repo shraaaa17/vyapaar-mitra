@@ -158,7 +158,9 @@ export function recordPayment(state: CounterDb, { checkout, method, payerKey, at
   if (regular) {
     regular.visits = visit
     regular.lastVisit = at.toISOString()
+    // Earned on every Nth visit; the next visit's bill uses it.
     if (visit % regular.reward.everyNVisits === 0) regular.reward.status = 'earned'
+    else if (regular.reward.status === 'earned') regular.reward.status = 'redeemed'
   }
 
   const rewardDue = tag !== 'NEW' && visit % REWARD_EVERY === 0
