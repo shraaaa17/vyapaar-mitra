@@ -4,7 +4,7 @@
 
 It's a concept prototype and not an official Paytm product. All merchant data shown is mock data.
 
-The app is the merchant's own copilot. Ramesh signs in and uses it on his phone or the shop-counter laptop. After sign-in he lands on the **Counter**: he rings up a bill, the customer pays by UPI QR or a card tap on the Soundbox, and every payment updates today's sales, the Soundbox caption, the agent activity feed and Ask Vyapaar Mitra's answers at once.
+The app is the merchant's own copilot. Ramesh signs in and uses it on his phone or the shop-counter laptop. After sign-in he lands on the **Counter**: he rings up a bill, the customer pays by UPI QR or a card tap on the RFID reader, and every payment updates today's sales, the Soundbox caption, the agent activity feed and Ask Vyapaar Mitra's answers at once.
 
 ## Stack
 
@@ -87,31 +87,29 @@ src/
 
 ## API
 
-With no `VITE_API_BASE_URL` set, every request is served in the browser by `src/mocks/server.ts`, with 300–900 ms of simulated latency. Mock state is saved to `localStorage`, so approvals and undos survive a refresh. To point at the real backend, set `VITE_API_BASE_URL=https://…` in `.env.local`.
+With no `VITE_API_BASE_URL` set, every request is served in the browser by `src/mocks/server.ts`, with 300–900 ms of simulated latency. Mock state is saved to `localStorage` (every read and write is wrapped, so a private window or blocked storage just means nothing is remembered), so approvals, undos and today's payments survive a refresh. To point at the real backend, set `VITE_API_BASE_URL` to its API root (for example `https://…/api/v1`) in `.env.local`. The merchant ID sent with counter and agent calls defaults to `MID-RAMESH-001`; set `VITE_MERCHANT_ID` to change it. The app has no API-key field anywhere: if the backend needs a key, put it in a proxy in front of the API, not in the browser.
 
 | Method | Path | Used for |
 |---|---|---|
-| POST | `/agent/query` | Ask Mitra answers (text + small card) |
+| POST | `/agent/query` | Ask Mitra answers (`{ merchantId, question, language }` → text + small card) |
 | GET | `/agent/insights` | Morning briefing and ranked insights |
 | GET | `/agent/actions` | Action Center |
 | POST | `/agent/action/approve` | Approve / reject / pause / resume / undo (`{ actionId, decision, edits? }`) |
 | PUT | `/agent/settings/trust` | Save trust settings (loans are always forced to `recommend_only`) |
 | GET | `/agent/outcomes` | Impact and learning |
 | GET | `/agent/cashflow` | 14-day cashflow forecast |
+| POST | `/agent/briefing` | Counter "Morning briefing" (`{ merchantId }` → yesterday, change, today so far, pending approvals) |
+| POST | `/agent/run` | Counter "Run agent now" (`{ merchantId }` → `insightsCreated`, `usedLLM`, any new action) |
+| POST | `/checkout` | Create a bill (`{ merchantId, amount }`, ₹1 to ₹1,00,000); it expires after 60 seconds |
+| GET | `/checkout/current?merchantId=` | The bill still open, if any (picked up again after a reload) |
+| POST | `/checkout/:id/cancel` | Cancel an open bill (`{ merchantId }`) |
+| POST | `/pos/link-card` | Link an RFID card to a customer's UPI ID (`{ merchantId, rfidUid, payerVpa }` → segment, visit count) |
 
-The mock also serves these helpers, which are **not** in the documented backend API: `GET /agent/settings/trust`, `GET /agent/campaigns`, `GET /agent/regulars` and `GET /merchant/profile`.
+The mock also serves these helpers, which are **not** in the documented backend API: `GET /agent/settings/trust`, `GET /agent/campaigns`, `GET /agent/regulars`, `GET /merchant/profile`, `GET /counter/today` (today's sales, payment count, returning customers, last 20 payments) and `POST /pos/card-tap` (stands in for a card touching the RFID reader: with a bill open it pays the bill, with none it reports the card so it can be linked).
 
-The Counter adds mock-only routes for the payment loop. Swap them for the real Soundbox and payment events when the backend has them:
+Payments reach the Counter the way the backend's live stream would deliver them: the mock pushes a `paid` event in the page, and with a real backend the app listens on `GET /live?merchantId=` (Server-Sent Events, `paid` events). With no real payment network, the mock's customer "scans the QR and pays" 8 seconds after a bill opens; "Tap card" pays at once. Each payment is tagged NEW, REGULAR or LAPSED with its visit number, and a loyalty reward every 12th visit. If marketing is on Auto and the customer opted in, the agent's WhatsApp message shows in the activity feed as a demo (nothing is sent).
 
-| Method | Path | Used for |
-|---|---|---|
-| GET | `/counter/today` | Today's sales, payment count, returning customers, last 20 payments |
-| POST | `/counter/bill` | Create a bill (`{ amount }`, ₹1 to ₹1,00,000); it expires after 60 seconds |
-| POST | `/counter/bill/tap` | Simulates the customer tapping a card on the Soundbox (`{ billId }`) |
-| POST | `/counter/bill/cancel` | Cancel an open bill (`{ billId }`) |
-| POST | `/agent/run` | "Run agent now": today's pace against a usual day, plus any new action |
-
-Payments carry a terminal ID internally, but the UI never shows it. The QR on a bill is a drawn placeholder that no app can scan, so the prototype can't send anyone real money; "Tap card" completes the payment.
+Payments carry a terminal ID internally, but the UI never shows it. Card UIDs and UPI handles are always masked on screen. The QR on a bill is a drawn placeholder that no app can scan, so the prototype can't send anyone real money.
 
 Sign-in is mocked too: `POST /auth/otp` (`{ phone }`) and `POST /auth/verify` (`{ phone, otp }`). Any 10-digit mobile number starting with 6–9 works, and any 6-digit OTP except `000000` (which returns a wrong-OTP error, to show that state).
 

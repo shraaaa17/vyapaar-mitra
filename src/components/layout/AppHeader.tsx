@@ -10,7 +10,7 @@ import { LiveIndicator } from './LiveIndicator'
 import { NavBadge } from './NavBadge'
 
 /**
- * Top bar on every signed-in screen: "Vyapaar Mitra · <section>", the masked
+ * Top bar on every signed-in screen: "Vyapaar Mitra · <section>", the
  * merchant ID, a live indicator, the language switch and the settings gear.
  * From 768px the sections sit in a tab row underneath.
  */
@@ -39,11 +39,17 @@ export function AppHeader() {
               </>
             )}
           </p>
-          {merchant && <p className="truncate text-xs text-slate-soft md:hidden">{t('shell.merchantId', { id: merchant.id })}</p>}
+          {merchant && (
+            <p className="truncate text-xs text-slate-soft tabular-nums md:hidden">
+              <span className="sr-only">{t('shell.merchantId')} </span>
+              {merchant.id}
+            </p>
+          )}
         </div>
         {merchant && (
-          <span className="hidden shrink-0 rounded-full bg-well px-3 py-1.5 text-sm font-medium text-slate md:inline-flex">
-            {t('shell.merchantId', { id: merchant.id })}
+          <span className="hidden shrink-0 rounded-full bg-well px-3 py-1.5 text-sm font-medium text-slate tabular-nums md:inline-flex">
+            <span className="sr-only">{t('shell.merchantId')} </span>
+            {merchant.id}
           </span>
         )}
         <LiveIndicator />

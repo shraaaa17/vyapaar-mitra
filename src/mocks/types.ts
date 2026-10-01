@@ -56,6 +56,8 @@ export type Insight = {
   ctaLabel: string
   /** Action this insight leads to, when one exists. */
   actionId?: string
+  /** When the agent raised it; today's show in the counter's activity feed. */
+  createdAt?: string
 }
 
 export type Briefing = {
@@ -122,6 +124,8 @@ export type AgentAction = {
   undoUntil?: string
   outcome?: { label: string; changePct?: number; simulated: boolean }
   campaignId?: string
+  /** Why a pending action waits for the merchant instead of running on its own. */
+  whyNotAuto?: 'asks_first' | 'high_stakes'
   loan?: LoanOffer
   reorderItems?: { name: string; quantity: string; cost: number }[]
 }
@@ -204,8 +208,10 @@ export type CashflowResponse = {
 export type QueryCard =
   | { type: 'metric'; label: string; value: string; caption?: string }
   | { type: 'bars'; label: string; data: { label: string; value: number; highlight?: boolean }[] }
+  /** Items ranked by a count (units sold), longest bar first. */
+  | { type: 'ranking'; label: string; data: { label: string; value: number }[] }
 
-export type QueryRequest = { question: string; language: LanguageCode }
+export type QueryRequest = { question: string; language: LanguageCode; merchantId?: string }
 
 export type QueryResponse = {
   answer: string
@@ -213,44 +219,48 @@ export type QueryResponse = {
   followUps: string[]
 }
 
-// ---------- Counter (bills and payments at the till) ----------
+// ---------- Counter (checkout at the till) ----------
+// Paths and request bodies follow the Vyapaar Mitra backend: POST /checkout,
+// POST /checkout/:id/cancel, GET /checkout/current, POST /pos/link-card,
+// POST /agent/briefing and POST /agent/run, each with the merchant ID.
 
-export type PaymentSource = 'card' | 'upi'
+export type PaymentMethod = 'card' | 'upi'
 
-/** A bill waiting to be paid by QR or card tap. */
-export type Bill = {
-  id: string
+/** How the merchant's history sees this customer before today's visit. */
+export type CustomerSegment = 'NEW' | 'REGULAR' | 'LAPSED'
+
+/** A bill waiting for a UPI QR scan or a card tap on the RFID reader. */
+export type Checkout = {
+  checkoutId: string
   amount: number
-  /** UPI intent the counter QR encodes. */
+  status: 'pending' | 'paid' | 'cancelled' | 'expired'
+  /** UPI intent the counter QR stands for. */
   upiUri: string
   createdAt: string
   expiresAt: string
 }
 
-export type CreateBillRequest = { amount: number }
-export type BillRequest = { billId: string }
-
-export type CounterCustomer = {
-  /** Masked label, e.g. "Cust ****12"; never a name or number. */
-  masked: string
-  /** Visits including this one. */
-  visits: number
-  returning: boolean
-  /** True when this visit earns the loyalty reward. */
-  rewardDue: boolean
-  whatsappOptIn: boolean
-}
+export type CheckoutRequest = { merchantId: string; amount: number }
+export type MerchantRequest = { merchantId: string }
+export type CurrentCheckoutResponse = { checkout: Checkout | null }
 
 export type Payment = {
-  id: string
-  billId: string
+  /** Same as the checkout it paid. */
+  checkoutId: string
   amount: number
-  source: PaymentSource
-  /** Masked card or UPI handle, e.g. "•••• 4417". */
-  instrumentMasked: string
+  method: PaymentMethod
+  /** Masked payer: a UPI handle ("sh•••@paytm") or an unlinked card ("Card ••:••:22:E1"). */
+  payer: string
+  txnId: string
+  tag: CustomerSegment
+  /** Visit number, counting this one. */
+  visit: number
+  /** True when this visit earns the loyalty reward. */
+  rewardDue: boolean
+  /** WhatsApp message the agent sent because of this payment (demo, never really sent). */
+  whatsapp?: { to: string; kind: 'reward' | 'welcomeBack' }
   /** Device that took the payment. Internal only: the UI never shows it. */
   terminalId: string
-  customer: CounterCustomer
   paidAt: string
 }
 
@@ -260,7 +270,7 @@ export type TodaySummary = {
   sales: number
   /** Number of payments today. */
   count: number
-  /** Payments from returning customers today. */
+  /** Payments today from customers who had been before. */
   returning: number
   /** Today's latest payments, newest first (at most 20). */
   recent: Payment[]
@@ -268,15 +278,43 @@ export type TodaySummary = {
 
 export type PaymentResponse = { payment: Payment; today: TodaySummary }
 
-// ---------- Agent run ("Run agent now") ----------
+/** A card read by the RFID reader with no bill open. */
+export type CardScan = {
+  rfidUid: string
+  /** The UID as the UI may show it, e.g. "••:••:22:E1". */
+  uidMasked: string
+  known: boolean
+  visitCount: number
+}
+
+/** POST /pos/card-tap (mock only): stands in for a card touching the reader. */
+export type CardTapResponse = { kind: 'paid'; payment: Payment; today: TodaySummary } | { kind: 'card'; card: CardScan }
+
+export type LinkCardRequest = { merchantId: string; rfidUid: string; payerVpa: string }
+export type LinkCardResponse = { rfidUid: string; payerVpa: string; segment: CustomerSegment; visitCount: number }
+
+/** Pushed by the server (the backend's live stream; the mock's in-page events). */
+export type LiveEvent = { type: 'paid'; payment: Payment; today: TodaySummary }
+
+// ---------- Agent ----------
+
+export type BriefingResponse = {
+  name: string
+  yesterday: number
+  changePct: number
+  /** English weekday, e.g. "Tuesday". */
+  day: string
+  today: number
+  pending: number
+}
 
 export type AgentRunReport = {
   ranAt: string
-  today: TodaySummary
-  /** Sales so far vs what a usual day has taken by this time (%), negative when behind. */
-  pacePct: number
+  /** New insights this cycle; 0 when today's are already raised. */
+  insightsCreated: number
+  usedLLM: boolean
+  insight: { title: string } | null
   /** An action the run created, already handled per the trust settings. */
   newAction: AgentAction | null
-  /** Set when a finding was dropped because that action type is switched off. */
-  skippedType: ActionType | null
+  today: TodaySummary
 }

@@ -3,17 +3,21 @@ import { Loader2, MessageCircleQuestion, RefreshCw, SendHorizontal } from 'lucid
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../../lib/api'
+import { merchantId } from '../../lib/merchant'
 import { cn } from '../../lib/cn'
 import type { QueryCard } from '../../mocks/types'
 import { useCounter } from '../../store/counter'
 import { useSession } from '../../store/session'
 import { ClayButton, ClayCard } from '../ui'
 
-const CHIPS = ['chipToday', 'chipLast', 'chipRegulars', 'chipDip', 'chipLoan'] as const
-type Chip = (typeof CHIPS)[number]
-
-/** A chip is kept as its id, so its wording follows the language switch. */
-type Question = { chip: Chip } | { text: string }
+/** Each chip asks its question in Hinglish, the way Ramesh would; the answer comes in the app's language. */
+const CHIPS = [
+  { id: 'chipToday', question: 'Aaj ki sale kitni hui?' },
+  { id: 'chipTop', question: 'Is hafte sabse zyada kya bika?' },
+  { id: 'chipLoan', question: 'Kya mujhe loan mil sakta hai?' },
+  { id: 'chipCustomers', question: 'Mere kitne customers hain?' },
+] as const
+const PLACEHOLDER = CHIPS[0].question
 
 /**
  * Ask Vyapaar Mitra on the counter. Answers come from POST /agent/query and
@@ -25,14 +29,17 @@ export function AskCard() {
   const language = useSession((s) => s.language)
   const revision = useCounter((s) => s.revision)
   const [draft, setDraft] = useState('')
-  const [question, setQuestion] = useState<Question | null>(null)
+  const [question, setQuestion] = useState<string | null>(null)
   const [askedAt, setAskedAt] = useState(0)
   const inputId = useId()
-  const text = question ? ('chip' in question ? t(`counter.ask.${question.chip}`) : question.text) : ''
 
   const answer = useQuery({
-    queryKey: ['ask', text, language, revision],
-    queryFn: async () => ({ text, revision, response: await api.query({ question: text, language }) }),
+    queryKey: ['ask', question, language, revision],
+    queryFn: async () => ({
+      question: question!,
+      revision,
+      response: await api.query({ question: question!, language, merchantId: merchantId() }),
+    }),
     enabled: question !== null,
     placeholderData: keepPreviousData,
     staleTime: Infinity,
@@ -40,7 +47,7 @@ export function AskCard() {
   })
 
   // The previous answer stays up while a payment refreshes it, but not under a new question.
-  const current = answer.data?.text === text ? answer.data : undefined
+  const current = answer.data?.question === question ? answer.data : undefined
   const refreshed = current !== undefined && current.revision > askedAt
   const refreshing = current !== undefined && answer.isPlaceholderData
 
@@ -48,24 +55,25 @@ export function AskCard() {
   const [announcement, setAnnouncement] = useState('')
   const announcedFor = useRef<string | null>(null)
   useEffect(() => {
-    if (current && !refreshed && announcedFor.current !== `${current.text}|${language}`) {
-      announcedFor.current = `${current.text}|${language}`
+    if (current && !refreshed && announcedFor.current !== `${current.question}|${language}`) {
+      announcedFor.current = `${current.question}|${language}`
       setAnnouncement(current.response.answer)
     }
   }, [current, refreshed, language])
 
-  const ask = (next: Question) => {
+  const ask = (text: string) => {
+    const next = text.trim()
+    if (!next) return
     announcedFor.current = null
     setQuestion(next)
     setAskedAt(revision)
+    // Asking the same question again fetches a fresh answer.
+    if (next === question) void answer.refetch()
   }
 
   const submit = (event: FormEvent) => {
     event.preventDefault()
-    const typed = draft.trim()
-    if (!typed) return
-    ask({ text: typed })
-    setDraft('')
+    ask(draft)
   }
 
   return (
@@ -88,7 +96,7 @@ export function AskCard() {
             id={inputId}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder={t('counter.ask.placeholder')}
+            placeholder={PLACEHOLDER}
             autoComplete="off"
             enterKeyHint="send"
             className="clay-inset h-12 min-w-0 flex-1 rounded-full px-5 text-[15px] text-ink placeholder:text-slate-soft"
@@ -100,62 +108,53 @@ export function AskCard() {
 
         <div role="group" aria-label={t('counter.ask.suggestions')} className="flex flex-wrap gap-2">
           {CHIPS.map((chip) => {
-            const selected = question !== null && 'chip' in question && question.chip === chip
+            const selected = question === chip.question
             return (
               <button
-                key={chip}
+                key={chip.id}
                 type="button"
-                onClick={() => ask({ chip })}
+                onClick={() => {
+                  setDraft(chip.question)
+                  ask(chip.question)
+                }}
                 aria-pressed={selected}
                 className={cn(
                   'min-h-12 rounded-full px-4 py-2 text-left text-sm font-medium transition-colors',
                   selected ? 'bg-accent-wash text-ink [box-shadow:inset_0_0_0_1.5px_var(--color-accent)]' : 'bg-well text-ink hover:bg-surface-2',
                 )}
               >
-                {t(`counter.ask.${chip}`)}
+                {t(`counter.ask.${chip.id}`)}
               </button>
             )
           })}
         </div>
 
-        <div className="rounded-[22px] border border-line bg-surface px-4 py-4">
+        <div className="min-h-16 rounded-[22px] border border-line bg-surface px-4 py-4">
           {question === null ? (
             <p className="text-slate">{t('counter.ask.empty')}</p>
-          ) : (
+          ) : current ? (
             <div className="flex flex-col gap-3">
-              <div>
-                <p className="text-xs font-semibold tracking-[0.12em] text-slate-soft uppercase">{t('counter.ask.youAsked')}</p>
-                <p className="font-semibold text-ink">{text}</p>
-              </div>
-              {current ? (
-                <>
-                  <p className="text-[15px] leading-relaxed text-ink">{current.response.answer}</p>
-                  {current.response.card && <AnswerVisual card={current.response.card} />}
-                  <p className={cn('inline-flex items-center gap-2 text-xs font-medium', refreshed ? 'text-success-ink' : 'text-slate-soft')}>
-                    {refreshing ? (
-                      <Loader2 aria-hidden className="size-3.5 animate-spin" />
-                    ) : (
-                      <RefreshCw aria-hidden className="size-3.5" />
-                    )}
-                    {refreshed ? t('counter.ask.refreshed') : t('counter.ask.live')}
-                  </p>
-                </>
-              ) : answer.isError ? (
-                <div className="flex flex-wrap items-center gap-3">
-                  <p role="alert" className="text-sm font-medium text-danger-ink">
-                    {t('counter.ask.error')}
-                  </p>
-                  <ClayButton variant="secondary" size="sm" onClick={() => void answer.refetch()}>
-                    {t('common.tryAgain')}
-                  </ClayButton>
-                </div>
-              ) : (
-                <p className="inline-flex items-center gap-2 text-slate">
-                  <Loader2 aria-hidden className="size-4 animate-spin" />
-                  {t('counter.ask.thinking')}
-                </p>
-              )}
+              <p className="text-base leading-relaxed text-ink">{current.response.answer}</p>
+              {current.response.card && <AnswerVisual card={current.response.card} />}
+              <p className={cn('inline-flex items-center gap-2 text-xs font-medium', refreshed ? 'text-success-ink' : 'text-slate-soft')}>
+                {refreshing ? <Loader2 aria-hidden className="size-3.5 animate-spin" /> : <RefreshCw aria-hidden className="size-3.5" />}
+                {refreshed ? t('counter.ask.refreshed') : t('counter.ask.live')}
+              </p>
             </div>
+          ) : answer.isError ? (
+            <div className="flex flex-wrap items-center gap-3">
+              <p role="alert" className="text-sm font-medium text-danger-ink">
+                {t('counter.ask.error')}
+              </p>
+              <ClayButton variant="secondary" size="sm" onClick={() => void answer.refetch()}>
+                {t('common.tryAgain')}
+              </ClayButton>
+            </div>
+          ) : (
+            <p className="text-2xl leading-none font-bold tracking-[0.2em] text-slate-soft">
+              <span aria-hidden>…</span>
+              <span className="sr-only">{t('counter.ask.thinking')}</span>
+            </p>
           )}
         </div>
         <p aria-live="polite" className="sr-only">
@@ -177,6 +176,7 @@ function AnswerVisual({ card }: { card: QueryCard }) {
       </div>
     )
   }
+  if (card.type === 'ranking') return <RankingVisual card={card} />
   const max = Math.max(...card.data.map((d) => d.value))
   return (
     <figure className="rounded-2xl bg-well px-4 py-3">
@@ -198,6 +198,29 @@ function AnswerVisual({ card }: { card: QueryCard }) {
           </li>
         ))}
       </ul>
+    </figure>
+  )
+}
+
+/** Items ranked by units sold, as horizontal bars with the count at the end. */
+function RankingVisual({ card }: { card: Extract<QueryCard, { type: 'ranking' }> }) {
+  const max = Math.max(...card.data.map((d) => d.value))
+  return (
+    <figure className="rounded-2xl bg-well px-4 py-3">
+      <figcaption className="text-sm font-medium text-slate">{card.label}</figcaption>
+      <ol className="mt-3 flex flex-col gap-2">
+        {card.data.map((d, i) => (
+          <li key={d.label} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1">
+            <span lang="en" className={cn('truncate text-sm', i === 0 ? 'font-semibold text-ink' : 'text-slate')}>
+              {d.label}
+            </span>
+            <span className="text-sm font-semibold text-ink tabular-nums">{d.value}</span>
+            <span aria-hidden className="col-span-2 h-2 overflow-hidden rounded-full bg-surface">
+              <span className={cn('block h-full rounded-full', i === 0 ? 'bg-coral' : 'bg-accent/70')} style={{ width: `${(d.value / max) * 100}%` }} />
+            </span>
+          </li>
+        ))}
+      </ol>
     </figure>
   )
 }

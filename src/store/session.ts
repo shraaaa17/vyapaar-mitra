@@ -1,5 +1,6 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { createJSONStorage, persist } from 'zustand/middleware'
+import { safeLocalStorage } from '../lib/storage'
 import type { LanguageCode } from '../mocks/types'
 import { useOnboardingDraft } from './onboarding'
 
@@ -57,6 +58,7 @@ export const useSession = create<SessionState>()(
     }),
     {
       name: 'vm-session-v1',
+      storage: createJSONStorage(() => safeLocalStorage),
       version: 2,
       // v1 had no OTP or per-number onboarding; an already onboarded v1 session keeps its number.
       migrate: (persisted) => {

@@ -1,29 +1,27 @@
 import { localDateKey } from '../lib/date'
 import { formatINR } from '../lib/format'
 import { SPEND_CAP, UNDO_WINDOWS } from '../lib/trust'
+import { safeLocalStorage } from '../lib/storage'
 import { detectIntent, phrasebooks } from './answers'
-import {
-  CARD_POOL,
-  createCounter,
-  createSeed,
-  merchant,
-  STORY,
-  TERMINAL_ID,
-  USUAL_DAY_SALES,
-  type MockDatabase,
-} from './seed'
+import { CARD_QUEUE, cardScan, customerSegment, emptyCounter, recordPayment, UPI_QUEUE } from './counter'
+import { createSeed, merchant, STORY, TOP_ITEMS, type MockDatabase } from './seed'
 import type {
   ActionDecisionRequest,
   AgentAction,
   AgentRunReport,
-  Bill,
-  BillRequest,
-  CreateBillRequest,
+  BriefingResponse,
+  CardTapResponse,
+  Checkout,
+  CheckoutRequest,
+  CurrentCheckoutResponse,
+  LinkCardRequest,
+  LinkCardResponse,
+  LiveEvent,
   OtpRequest,
   OtpResponse,
   OtpVerifyRequest,
   OtpVerifyResponse,
-  Payment,
+  PaymentMethod,
   PaymentResponse,
   QueryRequest,
   QueryResponse,
@@ -38,7 +36,8 @@ import type {
  * undos and settings survive a page refresh.
  */
 
-const STORAGE_KEY = 'vm-mock-db-v1'
+// v2: the counter moved to checkouts, linked cards and customer tags.
+const STORAGE_KEY = 'vm-mock-db-v2'
 
 export class MockApiError extends Error {
   status: number
@@ -50,23 +49,20 @@ export class MockApiError extends Error {
 
 function load(): MockDatabase {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    // Data saved before a part existed (e.g. the counter) gets that part from a fresh seed.
+    const raw = safeLocalStorage.getItem(STORAGE_KEY) as string | null
+    // Data saved before a part existed gets that part from a fresh seed.
     if (raw) return { ...createSeed(), ...(JSON.parse(raw) as Partial<MockDatabase>) }
   } catch {
-    // Storage can be unavailable (private mode); fall back to a fresh seed.
+    // Unreadable saved data; start the story fresh.
   }
   return createSeed()
 }
 
 let db: MockDatabase = load()
 
+/** Saved after every change, so a refresh keeps the story where it was (silently skipped if storage is blocked). */
 function persist() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(db))
-  } catch {
-    // Non-fatal: the session just won't survive a refresh.
-  }
+  void safeLocalStorage.setItem(STORAGE_KEY, JSON.stringify(db))
 }
 
 /** Restores the pilot story to its starting state. */
@@ -162,17 +158,34 @@ function updateTrust(next: TrustSettings): TrustSettings {
   return clone(db.trust)
 }
 
+// ---------- Live events ----------
+// The backend pushes payments over a live stream; the mock calls listeners in the page.
+
+type LiveListener = (event: LiveEvent) => void
+const listeners = new Set<LiveListener>()
+
+export function subscribeMockLive(listener: LiveListener) {
+  listeners.add(listener)
+  return () => {
+    listeners.delete(listener)
+  }
+}
+
+function emit(event: LiveEvent) {
+  listeners.forEach((listener) => listener(clone(event)))
+}
+
 // ---------- Counter ----------
 
 const BILL_SECONDS = 60
 const MAX_BILL = 100_000
+/** With no real payment network, the customer "scans the QR and pays" this long after the bill opens. */
+const AUTO_PAY_MS = 8_000
 
-/** Today's counter state; a new day starts with an empty till. */
+/** Today's counter; a new day starts with an empty till but keeps customers and cards. */
 function counter() {
   const today = localDateKey()
-  if (db.counter.date !== today) {
-    db.counter = { ...createCounter(new Date(), false), cardVisits: db.counter.cardVisits, taps: db.counter.taps }
-  }
+  if (db.counter.date !== today) db.counter = emptyCounter(new Date(), db.counter)
   return db.counter
 }
 
@@ -182,142 +195,219 @@ function todaySummary(): TodaySummary {
     date,
     sales: payments.reduce((sum, p) => sum + p.amount, 0),
     count: payments.length,
-    returning: payments.filter((p) => p.customer.returning).length,
+    returning: payments.filter((p) => p.tag !== 'NEW').length,
     recent: payments.slice(-20).reverse(),
   }
 }
 
-function createBill({ amount }: CreateBillRequest): Bill {
-  if (!Number.isInteger(amount) || amount < 1 || amount > MAX_BILL) {
-    throw new MockApiError(422, `Bill amount must be ₹1–₹${MAX_BILL.toLocaleString('en-IN')}`)
-  }
-  const now = new Date()
-  const id = `bill_${now.getTime().toString(36)}`
-  const bill: Bill = {
-    id,
-    amount,
-    upiUri: `upi://pay?pa=rameshkirana@paytm&pn=${encodeURIComponent(merchant.storeName)}&am=${amount}.00&cu=INR&tr=${id}`,
-    createdAt: now.toISOString(),
-    expiresAt: new Date(now.getTime() + BILL_SECONDS * 1000).toISOString(),
-  }
-  counter().bills[id] = { bill, status: 'open' }
-  persist()
-  return bill
-}
-
-function openBill(billId: string) {
-  const entry = counter().bills[billId]
-  if (!entry) throw new MockApiError(404, 'Bill not found')
-  if (entry.status !== 'open') throw new MockApiError(409, `Bill already ${entry.status}`)
-  if (new Date(entry.bill.expiresAt) < new Date()) {
-    entry.status = 'cancelled'
-    persist()
-    throw new MockApiError(410, 'Bill expired')
-  }
-  return entry
-}
-
-/** Simulates the customer tapping a card on the counter terminal. */
-function tapCard({ billId }: BillRequest): PaymentResponse {
-  const entry = openBill(billId)
+/** The open bill, if any; one that ran out of time is marked expired on the way. */
+function pendingCheckout(): Checkout | null {
   const state = counter()
-  const card = CARD_POOL[state.taps % CARD_POOL.length]
-  state.taps += 1
-
-  const regular = card.regularId ? db.regulars.regulars.find((r) => r.id === card.regularId) : undefined
-  let visits: number
-  if (regular) {
-    regular.visits += 1
-    regular.lastVisit = new Date().toISOString()
-    visits = regular.visits
-    if (visits % regular.reward.everyNVisits === 0) regular.reward.status = 'earned'
-  } else {
-    visits = (state.cardVisits[card.instrument] ?? 0) + 1
-    state.cardVisits[card.instrument] = visits
+  let open: Checkout | null = null
+  for (const checkout of Object.values(state.checkouts)) {
+    if (checkout.status !== 'pending') continue
+    if (new Date(checkout.expiresAt) <= new Date()) {
+      checkout.status = 'expired'
+      persist()
+    } else {
+      open = checkout
+    }
   }
+  return open
+}
 
-  const payment: Payment = {
-    id: `pay_${Date.now().toString(36)}`,
-    billId,
-    amount: entry.bill.amount,
-    source: 'card',
-    instrumentMasked: card.instrument,
-    terminalId: TERMINAL_ID,
-    customer: {
-      masked: regular?.masked ?? (visits > 1 ? `Cust ****${card.instrument.slice(-2)}` : 'New customer'),
-      visits,
-      returning: visits > 1,
-      rewardDue: regular ? visits % regular.reward.everyNVisits === 0 : false,
-      whatsappOptIn: regular?.consent.whatsappOptIn ?? false,
-    },
-    paidAt: new Date().toISOString(),
-  }
-  entry.status = 'paid'
-  state.payments.push(payment)
+const autoPayTimers = new Map<string, ReturnType<typeof setTimeout>>()
+
+function scheduleAutoPay(checkout: Checkout) {
+  if (autoPayTimers.has(checkout.checkoutId)) return
+  const due = new Date(checkout.createdAt).getTime() + AUTO_PAY_MS - Date.now()
+  const timer = setTimeout(() => {
+    autoPayTimers.delete(checkout.checkoutId)
+    const open = pendingCheckout()
+    if (open?.checkoutId !== checkout.checkoutId) return
+    const state = counter()
+    const vpa = UPI_QUEUE[state.upiTurn % UPI_QUEUE.length]
+    state.upiTurn += 1
+    emit({ type: 'paid', ...pay(open, 'upi', vpa) })
+  }, Math.max(due, 0))
+  autoPayTimers.set(checkout.checkoutId, timer)
+}
+
+function stopAutoPay(checkoutId: string) {
+  clearTimeout(autoPayTimers.get(checkoutId))
+  autoPayTimers.delete(checkoutId)
+}
+
+function pay(checkout: Checkout, method: PaymentMethod, payerKey: string): PaymentResponse {
+  stopAutoPay(checkout.checkoutId)
+  const payment = recordPayment(counter(), { checkout, method, payerKey, at: new Date(), trust: db.trust, regulars: db.regulars.regulars })
   persist()
   return { payment, today: todaySummary() }
 }
 
-function cancelBill({ billId }: BillRequest) {
-  const entry = counter().bills[billId]
-  if (entry?.status === 'open') entry.status = 'cancelled'
+function createCheckout({ amount }: CheckoutRequest): Checkout {
+  if (!Number.isInteger(amount) || amount < 1 || amount > MAX_BILL) {
+    throw new MockApiError(422, `Bill amount must be ₹1–₹${MAX_BILL.toLocaleString('en-IN')}`)
+  }
+  // One bill at a time: a new one replaces any bill still open.
+  const open = pendingCheckout()
+  if (open) {
+    open.status = 'cancelled'
+    stopAutoPay(open.checkoutId)
+  }
+  const now = new Date()
+  const checkoutId = `chk_${now.getTime().toString(36)}`
+  const checkout: Checkout = {
+    checkoutId,
+    amount,
+    status: 'pending',
+    upiUri: `upi://pay?pa=rameshkirana@paytm&pn=${encodeURIComponent(merchant.storeName)}&am=${amount}.00&cu=INR&tr=${checkoutId}`,
+    createdAt: now.toISOString(),
+    expiresAt: new Date(now.getTime() + BILL_SECONDS * 1000).toISOString(),
+  }
+  counter().checkouts[checkoutId] = checkout
   persist()
-  return { ok: true }
+  scheduleAutoPay(checkout)
+  return checkout
 }
 
-// ---------- Agent run ----------
+function currentCheckout(): CurrentCheckoutResponse {
+  const checkout = pendingCheckout()
+  // After a page reload the timer is gone; pick the open bill up again.
+  if (checkout) scheduleAutoPay(checkout)
+  return { checkout }
+}
 
-const SUGAR_REORDER_ID = 'act_reorder_sugar'
+function cancelCheckout(checkoutId: string) {
+  const checkout = counter().checkouts[checkoutId]
+  if (!checkout) throw new MockApiError(404, 'Checkout not found')
+  if (checkout.status === 'pending') checkout.status = 'cancelled'
+  stopAutoPay(checkoutId)
+  persist()
+  return { ok: true, checkout }
+}
 
 /**
- * "Run agent now": checks today's pace and, the first time, finds that sugar
- * and oil are running low. The new reorder follows the merchant's trust
- * setting: waits for approval, runs automatically (with undo), or is skipped.
+ * Mock only: a card touching the RFID reader. With a bill open (or the one
+ * named) the card pays it; with no bill open the reader just reports the card,
+ * so the merchant can link it to a customer's UPI ID.
+ */
+function cardTap({ checkoutId }: { checkoutId?: string }): CardTapResponse {
+  const state = counter()
+  const open = pendingCheckout()
+  if (checkoutId) {
+    const named = state.checkouts[checkoutId]
+    if (!named) throw new MockApiError(404, 'Checkout not found')
+    if (named.status === 'expired') throw new MockApiError(410, 'Bill expired')
+    if (named.status !== 'pending') throw new MockApiError(409, `Bill already ${named.status}`)
+  }
+  if (open) {
+    const uid = CARD_QUEUE[state.cardTurn % CARD_QUEUE.length]
+    state.cardTurn += 1
+    return { kind: 'paid', ...pay(open, 'card', uid) }
+  }
+  // The demo's first unlinked card comes up first, so linking can be shown.
+  const uid = CARD_QUEUE.find((id) => !state.cards[id]?.vpa) ?? CARD_QUEUE[state.cardTurn++ % CARD_QUEUE.length]
+  persist()
+  return { kind: 'card', card: cardScan(state, uid) }
+}
+
+const VPA = /^[a-z0-9._-]{2,}@[a-z][a-z0-9]{1,}$/i
+
+function linkCard({ rfidUid, payerVpa }: LinkCardRequest): LinkCardResponse {
+  const vpa = payerVpa.trim().toLowerCase()
+  if (!VPA.test(vpa)) throw new MockApiError(422, 'Enter a UPI ID like name@paytm')
+  const state = counter()
+  const card = state.cards[rfidUid] ?? (state.cards[rfidUid] = { uid: rfidUid, visits: 0 })
+  const customer =
+    state.customers[vpa] ?? (state.customers[vpa] = { vpa, visits: 0, lastVisit: null, whatsappOptIn: false })
+  // Visits made with the card before it was linked now count for the customer.
+  if (card.vpa !== vpa) {
+    customer.visits += card.visits
+    card.visits = 0
+  }
+  card.vpa = vpa
+  persist()
+  return { rfidUid, payerVpa: vpa, segment: customerSegment(customer), visitCount: customer.visits }
+}
+
+// ---------- Agent: briefing and run ----------
+
+function briefing(): BriefingResponse {
+  const { yesterday } = db.insights.briefing
+  return {
+    name: merchant.name,
+    yesterday: yesterday.sales,
+    changePct: yesterday.comparison.changePct,
+    day: yesterday.dayLabel,
+    today: todaySummary().sales,
+    pending: db.actions.filter((a) => a.status === 'pending').length,
+  }
+}
+
+const SUGAR_REORDER_ID = 'act_reorder_sugar'
+const SUGAR_INSIGHT_ID = 'ins_sugar_oil'
+
+/**
+ * "Run agent now": one agent cycle. The first run of the day spots sugar and
+ * oil selling fast and raises a reorder, which follows the trust setting:
+ * waits for approval, runs on its own (with undo), or is dropped when off.
+ * Later runs find nothing new.
  */
 function runAgent(): AgentRunReport {
   const now = new Date()
-  const today = todaySummary()
-  // A usual day's sales spread evenly over shop hours, 8 am to 10 pm.
-  const elapsed = Math.min(Math.max((now.getHours() + now.getMinutes() / 60 - 8) / 14, 0.2), 1)
-  const expected = Math.round(USUAL_DAY_SALES * elapsed)
-  const pacePct = Math.round(((today.sales - expected) / expected) * 100)
+  const report: AgentRunReport = { ranAt: now.toISOString(), insightsCreated: 0, usedLLM: false, insight: null, newAction: null, today: todaySummary() }
+  if (db.insights.insights.some((i) => i.id === SUGAR_INSIGHT_ID)) return report
 
-  let newAction: AgentAction | null = null
-  let skippedType: AgentRunReport['skippedType'] = null
+  const title = 'Sugar and cooking oil selling fast today'
+  db.insights.insights.push({
+    id: SUGAR_INSIGHT_ID,
+    kind: 'reorder',
+    rank: db.insights.insights.length + 1,
+    title,
+    detail: 'About 2 days of stock left at today’s pace.',
+    impactRupees: 1_900,
+    impactLabel: '₹1,900 sales protected',
+    risk: 'medium',
+    ctaLabel: 'Review reorder',
+    actionId: SUGAR_REORDER_ID,
+    createdAt: now.toISOString(),
+  })
+  report.insightsCreated = 1
+  report.insight = { title }
+
   const mode = db.trust.modes.reorder
-  if (!db.actions.some((a) => a.id === SUGAR_REORDER_ID)) {
-    if (mode === 'off') {
-      skippedType = 'reorder'
-    } else {
-      const auto = mode === 'auto'
-      newAction = {
-        id: SUGAR_REORDER_ID,
-        type: 'reorder',
-        title: 'Reorder sugar and cooking oil',
-        summary: 'Sugar and oil are selling faster today; about 2 days of stock left.',
-        why: {
-          dataUsed: ['Today’s counter payments', 'Item-level sales from POS taps', 'Your current stock estimate'],
-          pattern: 'Sugar and oil are selling 35% above a usual weekday.',
-          confidence: 0.76,
-        },
-        expectedImpact: { label: 'Avoids about ₹1,900 of lost sales', rupees: 1_900 },
-        risk: 'medium',
-        costCap: 3_400,
-        status: auto ? 'auto_done' : 'pending',
-        recommendOnly: false,
-        createdAt: now.toISOString(),
-        executedAt: auto ? now.toISOString() : undefined,
-        undoUntil: auto ? new Date(now.getTime() + db.trust.undoWindowMinutes * 60_000).toISOString() : undefined,
-        reorderItems: [
-          { name: 'Sugar', quantity: '2 × 25 kg', cost: 2_200 },
-          { name: 'Sunflower oil', quantity: '1 × 15 L', cost: 1_200 },
-        ],
-      }
-      db.actions.unshift(newAction)
-      persist()
+  if (mode !== 'off') {
+    const auto = mode === 'auto'
+    const action: AgentAction = {
+      id: SUGAR_REORDER_ID,
+      type: 'reorder',
+      title: 'Reorder sugar and cooking oil',
+      summary: 'Sugar and oil are selling faster today; about 2 days of stock left.',
+      why: {
+        dataUsed: ['Today’s counter payments', 'Item-level sales from POS taps', 'Your current stock estimate'],
+        pattern: 'Sugar and oil are selling 35% above a usual weekday.',
+        confidence: 0.76,
+      },
+      expectedImpact: { label: 'Avoids about ₹1,900 of lost sales', rupees: 1_900 },
+      risk: 'medium',
+      costCap: 3_400,
+      status: auto ? 'auto_done' : 'pending',
+      recommendOnly: false,
+      whyNotAuto: auto ? undefined : 'asks_first',
+      createdAt: now.toISOString(),
+      executedAt: auto ? now.toISOString() : undefined,
+      undoUntil: auto ? new Date(now.getTime() + db.trust.undoWindowMinutes * 60_000).toISOString() : undefined,
+      reorderItems: [
+        { name: 'Sugar', quantity: '2 × 25 kg', cost: 2_200 },
+        { name: 'Sunflower oil', quantity: '1 × 15 L', cost: 1_200 },
+      ],
     }
+    db.actions.unshift(action)
+    report.newAction = clone(action)
   }
-  return { ranAt: now.toISOString(), today, pacePct, newAction: newAction && clone(newAction), skippedType }
+  persist()
+  return report
 }
 
 // ---------- Ask Mitra ----------
@@ -344,12 +434,30 @@ function answerQuery({ question, language }: QueryRequest): QueryResponse {
       return {
         answer: say.last({
           amount: formatINR(last.amount),
-          instrument: last.instrumentMasked,
+          method: last.method,
+          payer: last.payer,
           minutes,
-          visits: last.customer.visits,
-          returning: last.customer.returning,
+          visits: last.visit,
+          returning: last.tag !== 'NEW',
         }),
-        card: { type: 'metric', label: labels.lastPayment, value: formatINR(last.amount), caption: last.instrumentMasked },
+        card: { type: 'metric', label: labels.lastPayment, value: formatINR(last.amount), caption: last.payer },
+        followUps: [],
+      }
+    }
+    case 'top': {
+      const [first, ...rest] = TOP_ITEMS
+      return {
+        answer: say.top({ item: first.name, units: first.units, next: rest.slice(0, 2).map((i) => ({ item: i.name, units: i.units })) }),
+        card: { type: 'ranking', label: labels.topThisWeek, data: TOP_ITEMS.map((i) => ({ label: i.name, value: i.units })) },
+        followUps: [],
+      }
+    }
+    case 'customers': {
+      const newToday = counter().payments.filter((p) => p.tag === 'NEW').length
+      const total = STORY.customersThisMonth + newToday
+      return {
+        answer: say.customers({ total, regulars: db.regulars.total, quiet: STORY.quietRegulars, newToday }),
+        card: { type: 'metric', label: labels.customersThisMonth, value: String(total), caption: labels.customersCaption(db.regulars.total, newToday) },
         followUps: [],
       }
     }
@@ -392,33 +500,56 @@ function answerQuery({ question, language }: QueryRequest): QueryResponse {
   }
 }
 
-type Handler = (body: unknown) => unknown
+type Request = { body: unknown; params: Record<string, string>; query: Record<string, string> }
+type Handler = (request: Request) => unknown
 
 const routes: Record<string, Handler> = {
   'GET /agent/insights': () => db.insights,
   'GET /agent/actions': () => db.actions,
-  'POST /agent/action/approve': (body) => applyDecision(body as ActionDecisionRequest),
-  'PUT /agent/settings/trust': (body) => updateTrust(body as TrustSettings),
+  'POST /agent/action/approve': ({ body }) => applyDecision(body as ActionDecisionRequest),
+  'PUT /agent/settings/trust': ({ body }) => updateTrust(body as TrustSettings),
   'GET /agent/settings/trust': () => db.trust,
   'GET /agent/outcomes': () => db.outcomes,
   'GET /agent/cashflow': () => db.cashflow,
-  'POST /agent/query': (body) => answerQuery(body as QueryRequest),
-  // Mock-only helpers, not part of the documented backend API.
+  'POST /agent/query': ({ body }) => answerQuery(body as QueryRequest),
+  'POST /agent/briefing': () => briefing(),
   'POST /agent/run': () => runAgent(),
+  'POST /checkout': ({ body }) => createCheckout(body as CheckoutRequest),
+  'GET /checkout/current': () => currentCheckout(),
+  'POST /checkout/:id/cancel': ({ params }) => cancelCheckout(params.id),
+  'POST /pos/link-card': ({ body }) => linkCard(body as LinkCardRequest),
+  // Mock-only helpers, not part of the documented backend API.
   'GET /counter/today': () => todaySummary(),
-  'POST /counter/bill': (body) => createBill(body as CreateBillRequest),
-  'POST /counter/bill/tap': (body) => tapCard(body as BillRequest),
-  'POST /counter/bill/cancel': (body) => cancelBill(body as BillRequest),
+  'POST /pos/card-tap': ({ body }) => cardTap((body ?? {}) as { checkoutId?: string }),
   'GET /agent/campaigns': () => db.campaigns,
   'GET /agent/regulars': () => db.regulars,
   'GET /merchant/profile': () => merchant,
-  'POST /auth/otp': (body) => sendOtp(body as OtpRequest),
-  'POST /auth/verify': (body) => verifyOtp(body as OtpVerifyRequest),
+  'POST /auth/otp': ({ body }) => sendOtp(body as OtpRequest),
+  'POST /auth/verify': ({ body }) => verifyOtp(body as OtpVerifyRequest),
+}
+
+/** Finds the route for "METHOD /path", where a ":name" segment matches any value. */
+function match(method: string, pathname: string): { handler: Handler; params: Record<string, string> } | null {
+  const segments = pathname.split('/')
+  for (const [key, handler] of Object.entries(routes)) {
+    const [routeMethod, routePath] = key.split(' ')
+    const pattern = routePath.split('/')
+    if (routeMethod !== method || pattern.length !== segments.length) continue
+    if (!pattern.every((part, i) => part.startsWith(':') || part === segments[i])) continue
+    const params: Record<string, string> = {}
+    pattern.forEach((part, i) => {
+      if (part.startsWith(':')) params[part.slice(1)] = decodeURIComponent(segments[i])
+    })
+    return { handler, params }
+  }
+  return null
 }
 
 export async function mockRequest<T>(method: string, path: string, body?: unknown): Promise<T> {
   await wait(latency())
-  const handler = routes[`${method.toUpperCase()} ${path}`]
-  if (!handler) throw new MockApiError(404, `No mock route for ${method} ${path}`)
-  return clone(handler(body)) as T
+  const [pathname, search = ''] = path.split('?')
+  const found = match(method.toUpperCase(), pathname)
+  if (!found) throw new MockApiError(404, `No mock route for ${method} ${pathname}`)
+  const query = Object.fromEntries(new URLSearchParams(search))
+  return clone(found.handler({ body, params: found.params, query })) as T
 }

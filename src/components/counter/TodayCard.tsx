@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion'
 import { IndianRupee } from 'lucide-react'
-import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getLanguage } from '../../i18n/languages'
 import { formatINR } from '../../lib/format'
@@ -17,10 +16,6 @@ export function TodayCard() {
   const loadToday = useCounter((s) => s.loadToday)
   const language = useSession((s) => s.language)
   const last = today?.recent[0]
-
-  useEffect(() => {
-    void loadToday()
-  }, [loadToday])
 
   return (
     <ClayCard as="section" aria-labelledby="today-title" padding="none" className="flex flex-col gap-1 px-5 py-5 sm:px-6">

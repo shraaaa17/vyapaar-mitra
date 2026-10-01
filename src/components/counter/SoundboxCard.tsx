@@ -1,57 +1,31 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { Check, Loader2, Sparkles, Speaker, Sunrise } from 'lucide-react'
+import { Check, Loader2, Sparkles, Speaker, Sunrise, Volume2, VolumeX } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useActions, useInsights, useRunAgent } from '../../hooks/queries'
+import { useRunAgent } from '../../hooks/queries'
 import { getLanguage } from '../../i18n/languages'
 import { cn } from '../../lib/cn'
 import { speechSupported } from '../../lib/speech'
 import type { AgentRunReport } from '../../mocks/types'
 import { useCounter, type Line } from '../../store/counter'
 import { useSession } from '../../store/session'
-import { ClayButton, ClayCard, ClaySwitch } from '../ui'
+import { ClayButton, ClayCard } from '../ui'
 import { clockTime, lineText } from './lines'
 
 const STEPS = ['stepObserve', 'stepReason', 'stepDecide', 'stepAct', 'stepLearn'] as const
 const STEP_MS = 500
-/** Within this many percent of a usual day counts as "in line". */
-const ON_TRACK_PCT = 5
-/** Early in the day the comparison swings wildly, so it is capped. */
-const MAX_PACE_PCT = 60
 
-/**
- * What an agent run says. The pace line goes to the feed; a new action shows
- * up in the feed on its own (from the actions list), so it is only the caption.
- */
-function runLines(report: AgentRunReport, undoMinutes: number): { feed: Line[]; caption: Line } {
-  const pct = Math.min(Math.abs(report.pacePct), MAX_PACE_PCT)
-  const pace: Line =
-    pct <= ON_TRACK_PCT
-      ? { key: 'counter.lines.agentOnTrack', params: { today: report.today.sales } }
-      : {
-          key: report.pacePct > 0 ? 'counter.lines.agentAhead' : 'counter.lines.agentBehind',
-          params: { today: report.today.sales, pct },
-        }
-  const action = report.newAction
-  if (action) {
-    return {
-      feed: [pace],
-      caption: {
-        key: action.status === 'auto_done' ? 'counter.lines.agentNewAuto' : 'counter.lines.agentNewPending',
-        params: { type: action.type, cost: action.costCap, minutes: undoMinutes },
-      },
-    }
-  }
-  const outcome: Line = report.skippedType
-    ? { key: 'counter.lines.agentSkipped', params: { type: report.skippedType } }
+/** What an agent cycle adds to the activity feed. */
+function cycleLine(report: AgentRunReport): Line {
+  return report.insightsCreated > 0
+    ? { key: 'counter.lines.agentInsights', params: { count: report.insightsCreated } }
     : { key: 'counter.lines.agentNothingNew' }
-  return { feed: [pace, outcome], caption: outcome }
 }
 
 /**
- * The counter Soundbox: a live caption of what it last said, the voice switch,
+ * The counter Soundbox: a large caption of what it last said, "Enable voice",
  * the morning briefing and "Run agent now" (with the Observe → Learn steps).
- * The caption is the counter's single live region for screen readers.
+ * The caption is the counter's live region for screen readers.
  */
 export function SoundboxCard() {
   const { t, i18n } = useTranslation()
@@ -60,57 +34,30 @@ export function SoundboxCard() {
   const voiceOn = useCounter((s) => s.voiceOn)
   const speaking = useCounter((s) => s.speaking)
   const setVoice = useCounter((s) => s.setVoice)
-  const today = useCounter((s) => s.today)
-  const { data: insights } = useInsights()
-  const { data: actions } = useActions()
+  const briefing = useCounter((s) => s.briefing)
+  const playBriefing = useCounter((s) => s.playBriefing)
   const canSpeak = speechSupported()
+  const [cycle, setCycle] = useState<Line | null>(null)
 
   const run = useRunAgent((report) => {
-    const { say, log, setToday } = useCounter.getState()
+    const { log, setToday } = useCounter.getState()
     setToday(report.today)
-    const undoMinutes = report.newAction?.undoUntil
-      ? Math.round((new Date(report.newAction.undoUntil).getTime() - new Date(report.ranAt).getTime()) / 60_000)
-      : 0
-    const { feed, caption } = runLines(report, undoMinutes)
-    feed.forEach((line) => log('agent', line))
-    say(caption)
+    const line = cycleLine(report)
+    log('ai', { key: 'counter.feed.agentCycle' }, line)
+    setCycle(line)
   })
-
-  const playBriefing = () => {
-    if (!insights || !today) return
-    const { yesterday } = insights.briefing
-    const pending = actions?.filter((a) => a.status === 'pending').length ?? 0
-    const { say, log } = useCounter.getState()
-    say({
-      key: 'counter.lines.briefing',
-      params: {
-        name: insights.briefing.greetingName,
-        yesterday: yesterday.sales,
-        pct: Math.abs(yesterday.comparison.changePct),
-        day: yesterday.dayLabel,
-        today: today.sales,
-        count: pending,
-      },
-    })
-    log('briefing', { key: 'counter.lines.briefingPlayed' })
-  }
 
   const locale = getLanguage(language).htmlLang
 
   return (
     <ClayCard as="section" aria-labelledby="soundbox-title" padding="none">
-      <header className="flex flex-wrap items-center justify-between gap-3 px-5 pt-5 sm:px-6">
-        <div className="flex items-center gap-3">
-          <span aria-hidden className="inline-flex size-10 items-center justify-center rounded-xl bg-accent-wash text-accent-ink">
-            <Speaker className="size-5" />
-          </span>
-          <h2 id="soundbox-title" className="text-lg font-bold">
-            {t('counter.soundbox.title')}
-          </h2>
-        </div>
-        {canSpeak && (
-          <ClaySwitch checked={voiceOn} onChange={setVoice} label={t('counter.soundbox.voice')} className="gap-3" />
-        )}
+      <header className="flex items-center gap-3 px-5 pt-5 sm:px-6">
+        <span aria-hidden className="inline-flex size-10 items-center justify-center rounded-xl bg-accent-wash text-accent-ink">
+          <Speaker className="size-5" />
+        </span>
+        <h2 id="soundbox-title" className="text-lg font-bold">
+          {t('counter.soundbox.title')}
+        </h2>
       </header>
 
       <div className="px-5 pt-4 pb-5 sm:px-6 sm:pb-6">
@@ -124,33 +71,54 @@ export function SoundboxCard() {
           </div>
           {run.isPending && <AgentSteps />}
           {/* Always mounted, so screen readers hear each new caption (it hides behind the steps during a run). */}
-          <p aria-live="polite" className={cn('text-lg leading-snug font-semibold text-ink', run.isPending && 'sr-only')}>
-            {caption ? lineText(i18n.t, caption.line) : t('counter.soundbox.idle')}
+          <p aria-live="polite" className={cn('text-xl leading-snug font-semibold text-ink sm:text-[22px]', run.isPending && 'sr-only')}>
+            {caption ? lineText(i18n.t, caption.line) : <span aria-hidden>—</span>}
           </p>
         </div>
 
-        {!canSpeak ? (
-          <p className="mt-3 text-sm text-slate-soft">{t('counter.soundbox.voiceUnsupported')}</p>
-        ) : (
-          !voiceOn && <p className="mt-3 text-sm text-slate-soft">{t('counter.soundbox.voiceOffNote')}</p>
+        {!canSpeak && <p className="mt-3 text-sm text-slate-soft">{t('counter.soundbox.voiceUnsupported')}</p>}
+        {briefing === 'error' && (
+          <p role="alert" className="mt-3 text-sm font-medium text-danger-ink">
+            {t('counter.soundbox.briefingFailed')}
+          </p>
         )}
         {run.isError && (
           <p role="alert" className="mt-3 text-sm font-medium text-danger-ink">
             {t('counter.soundbox.runFailed')}
           </p>
         )}
+        {/* The cycle's result goes to the activity feed; screen readers hear it here. */}
+        <p aria-live="polite" className="sr-only">
+          {cycle && !run.isPending ? `${t('counter.feed.agentCycle')}: ${lineText(i18n.t, cycle)}` : ''}
+        </p>
 
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        {/* Buttons share a row while they fit and wrap (full width on phones) when they don't. */}
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:*:flex-auto">
+          {canSpeak && (
+            <ClayButton
+              variant="secondary"
+              aria-pressed={voiceOn}
+              onClick={() => setVoice(!voiceOn)}
+              leadingIcon={voiceOn ? <Volume2 className="size-[18px]" /> : <VolumeX className="size-[18px]" />}
+              className="aria-pressed:bg-accent-wash"
+            >
+              {voiceOn ? t('counter.soundbox.voiceOn') : t('counter.soundbox.voiceEnable')}
+            </ClayButton>
+          )}
           <ClayButton
             variant="secondary"
-            onClick={playBriefing}
-            aria-disabled={!insights || !today || undefined}
-            leadingIcon={<Sunrise className="size-[18px]" />}
+            onClick={() => void playBriefing()}
+            aria-disabled={briefing === 'loading' || undefined}
+            leadingIcon={briefing === 'loading' ? <Loader2 className="size-[18px] animate-spin" /> : <Sunrise className="size-[18px]" />}
           >
             {t('counter.soundbox.briefing')}
           </ClayButton>
           <ClayButton
-            onClick={() => !run.isPending && run.mutate()}
+            onClick={() => {
+              if (run.isPending) return
+              setCycle(null)
+              run.mutate()
+            }}
             aria-disabled={run.isPending || undefined}
             leadingIcon={run.isPending ? <Loader2 className="size-[18px] animate-spin" /> : <Sparkles className="size-[18px]" />}
           >

@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Outlet } from 'react-router-dom'
+import { CounterSync } from '../counter/CounterSync'
 import { SoundboxVoice } from '../counter/SoundboxVoice'
 import { AppHeader } from './AppHeader'
 import { BottomTabs } from './BottomTabs'
@@ -32,6 +33,7 @@ export function AppShell() {
       </main>
       <BottomTabs />
       <MoreSheet />
+      <CounterSync />
       <SoundboxVoice />
     </div>
   )

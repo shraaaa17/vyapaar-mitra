@@ -1,8 +1,7 @@
-import { localDateKey } from '../lib/date'
 import { RECOMMENDED_TRUST } from '../lib/trust'
+import { emptyCounter, seedPayment, type CounterDb } from './counter'
 import type {
   AgentAction,
-  Bill,
   Campaign,
   CashflowDay,
   CashflowResponse,
@@ -10,7 +9,7 @@ import type {
   LoanOffer,
   Merchant,
   OutcomesResponse,
-  Payment,
+  Regular,
   RegularsResponse,
   TrustSettings,
 } from './types'
@@ -20,7 +19,8 @@ import type {
  * one screen is defined once here so the app stays consistent everywhere:
  * yesterday ₹8,400 (−18% vs last Tuesday), 40 regulars, WhatsApp offer
  * auto-sent, 12th-visit reward, Tuesday ₹10,900 (+30%, pilot simulation),
- * cash crunch in 6 days, a reorder and a recommend-only loan waiting.
+ * cash crunch in 6 days, a detergent restock and a recommend-only loan
+ * waiting, and ₹670 taken at the counter so far today (3 payments).
  */
 
 export const STORY = {
@@ -33,10 +33,23 @@ export const STORY = {
   cashCrunchInDays: 6,
   spendCap: RECOMMENDED_TRUST.campaignSpendCap,
   undoWindowMinutes: RECOMMENDED_TRUST.undoWindowMinutes,
+  /** Different customers who paid this month before today. */
+  customersThisMonth: 211,
+  /** Regulars who haven't visited this week. */
+  quietRegulars: 12,
 } as const
 
+/** This week's best sellers (units), for "Is hafte sabse zyada kya bika?". */
+export const TOP_ITEMS = [
+  { name: 'Amul Taaza 500ml', units: 212 },
+  { name: 'Parle-G', units: 164 },
+  { name: 'Maggi', units: 96 },
+  { name: 'Surf Excel 1kg', units: 41 },
+  { name: 'Aashirvaad Atta 5kg', units: 38 },
+]
+
 export const merchant: Merchant = {
-  id: 'PTM-****4821',
+  id: 'MID-RAMESH-001',
   name: 'Ramesh',
   storeName: 'Ramesh Kirana Store',
   category: 'Kirana & groceries',
@@ -77,37 +90,6 @@ const daysFrom = (now: Date, days: number) => {
   return d
 }
 
-/** The counter Soundbox. Payments carry its ID, but the UI never shows it. */
-export const TERMINAL_ID = 'PTSB-MUM-0042177'
-
-/** A usual weekday's takings, used to judge today's pace. */
-export const USUAL_DAY_SALES = 11_200
-
-/**
- * Cards that tap at the counter, in turn. Some belong to regulars (their visit
- * count comes from the regulars list); the rest are new shoppers. The first
- * tap is a regular reaching the 12th-visit reward.
- */
-export const CARD_POOL: { instrument: string; regularId?: string }[] = [
-  { instrument: '•••• 4417', regularId: 'cust_12' },
-  { instrument: '•••• 9031' },
-  { instrument: '•••• 2268', regularId: 'cust_85' },
-  { instrument: '•••• 6620' },
-  { instrument: '•••• 7754', regularId: 'cust_09' },
-  { instrument: '•••• 3342', regularId: 'cust_64' },
-]
-
-export type CounterDb = {
-  date: string
-  bills: Record<string, { bill: Bill; status: 'open' | 'paid' | 'cancelled' }>
-  /** Today's payments, oldest first. */
-  payments: Payment[]
-  /** Visits by card for shoppers who aren't regulars yet. */
-  cardVisits: Record<string, number>
-  /** How many cards have tapped so far; picks the next card from CARD_POOL. */
-  taps: number
-}
-
 export type MockDatabase = {
   insights: InsightsResponse
   actions: AgentAction[]
@@ -119,39 +101,23 @@ export type MockDatabase = {
   counter: CounterDb
 }
 
-/** Payments already taken this morning, so the counter opens mid-day like a real shop. */
-export function createCounter(now = new Date(), withMorning = true): CounterDb {
+/** Payments already taken this morning (₹670 from 3 customers), so the counter opens mid-day like a real shop. */
+export function createCounter(now: Date, trust: TrustSettings, regulars: Regular[]): CounterDb {
+  const state = emptyCounter(now)
   const startOfDay = new Date(now)
   startOfDay.setHours(0, 0, 0, 0)
-  const morning: [number, number, Payment['source'], string, string | null, number][] = [
-    // minutes ago, amount, source, card or UPI handle, regular, visits
-    [150, 180, 'upi', '••••@ybl', null, 1],
-    [118, 420, 'card', '•••• 5821', 'Cust ****21', 8],
-    [92, 95, 'upi', '••••@paytm', null, 1],
-    [64, 640, 'card', '•••• 1937', 'Cust ****37', 12],
-    [37, 260, 'upi', '••••@okicici', 'Cust ****46', 5],
-    [16, 245, 'card', '•••• 8810', null, 2],
+  const morning: [number, number, 'card' | 'upi', string][] = [
+    // minutes ago, amount, method, UPI handle or card UID
+    [120, 310, 'upi', 'priya.n@ybl'],
+    [70, 240, 'card', '04:C9:5D:30'],
+    [25, 120, 'upi', 'vikas.p@ybl'],
   ]
-  const payments: Payment[] = withMorning
-    ? morning.map(([ago, amount, source, instrument, masked, visits], i) => ({
-        id: `pay_seed_${i}`,
-        billId: `bill_seed_${i}`,
-        amount,
-        source,
-        instrumentMasked: instrument,
-        terminalId: TERMINAL_ID,
-        customer: {
-          masked: masked ?? (visits > 1 ? `Cust ****${instrument.slice(-2)}` : 'New customer'),
-          visits,
-          returning: visits > 1,
-          rewardDue: false,
-          whatsappOptIn: masked !== null,
-        },
-        // Never earlier than midnight, so a seed made at 1 am still counts as today.
-        paidAt: new Date(Math.max(now.getTime() - ago * 60_000, startOfDay.getTime() + i * 60_000)).toISOString(),
-      }))
-    : []
-  return { date: localDateKey(now), bills: {}, payments, cardVisits: {}, taps: 0 }
+  morning.forEach(([ago, amount, method, payerKey], index) => {
+    // Never earlier than midnight, so a seed made at 1 am still counts as today.
+    const at = new Date(Math.max(now.getTime() - ago * 60_000, startOfDay.getTime() + index * 60_000))
+    seedPayment(state, { amount, method, payerKey, at, trust, regulars, index })
+  })
+  return state
 }
 
 export function createSeed(now = new Date()): MockDatabase {
@@ -160,31 +126,29 @@ export function createSeed(now = new Date()): MockDatabase {
 
   const actions: AgentAction[] = [
     {
-      id: 'act_reorder_staples',
+      id: 'act_restock_detergent',
       type: 'reorder',
-      title: 'Reorder rice and atta before stock runs out',
-      summary: 'Basmati rice and atta will run out in about 4 days at the current pace.',
+      title: 'Restock detergent 1kg',
+      summary: 'Detergent 1kg is selling faster than usual; about 3 days of stock left.',
       why: {
-        dataUsed: ['Last 30 days of UPI sales', 'Item-level sales from POS taps', 'Your last 3 supplier orders'],
-        pattern: 'Rice and atta sell 22% faster in the first week of the month.',
-        confidence: 0.84,
+        dataUsed: ['Last 30 days of counter sales', 'Item-level sales from POS taps', 'Your last 3 supplier orders'],
+        pattern: 'Detergent 1kg sold 41 packs this week, about 30% above a usual week.',
+        confidence: 0.82,
       },
-      expectedImpact: { label: 'Avoids about ₹3,200 of lost sales', rupees: 3_200 },
+      expectedImpact: { label: 'Avoids about ₹1,500 of lost sales', rupees: 1_500 },
       risk: 'medium',
-      costCap: 6_800,
+      costCap: 3_600,
       status: 'pending',
       recommendOnly: false,
+      whyNotAuto: 'asks_first',
       createdAt: minutesAgo(now, 40),
-      reorderItems: [
-        { name: 'Basmati rice', quantity: '2 × 25 kg', cost: 4_200 },
-        { name: 'Chakki atta', quantity: '4 × 10 kg', cost: 2_600 },
-      ],
+      reorderItems: [{ name: 'Surf Excel 1kg', quantity: '2 cartons × 20', cost: 3_600 }],
     },
     {
       id: 'act_loan_offer',
       type: 'loan',
-      title: 'Pre-approved working-capital loan',
-      summary: `You may qualify for ₹${loan.amount.toLocaleString('en-IN')} to cover the cash gap in ${STORY.cashCrunchInDays} days.`,
+      title: `Business loan pre-approved up to ₹${loan.amount.toLocaleString('en-IN')}`,
+      summary: `A lending partner pre-approved up to ₹${loan.amount.toLocaleString('en-IN')}, enough to cover the cash gap in ${STORY.cashCrunchInDays} days.`,
       why: {
         dataUsed: ['90 days of steady UPI collections', 'Predicted cashflow for the next 14 days', 'Upcoming supplier payment'],
         pattern: `Balance is forecast to dip below your safety level in ${STORY.cashCrunchInDays} days.`,
@@ -194,6 +158,7 @@ export function createSeed(now = new Date()): MockDatabase {
       risk: 'high',
       status: 'pending',
       recommendOnly: true,
+      whyNotAuto: 'high_stakes',
       createdAt: minutesAgo(now, 35),
       loan,
     },
@@ -209,9 +174,11 @@ export function createSeed(now = new Date()): MockDatabase {
       },
       expectedImpact: { label: 'About ₹900 more sales a month', rupees: 900 },
       risk: 'low',
-      status: 'pending',
+      // Approved yesterday, so today's approval list holds just the restock and the loan.
+      status: 'approved',
       recommendOnly: false,
-      createdAt: minutesAgo(now, 30),
+      createdAt: minutesAgo(now, 60 * 26),
+      executedAt: minutesAgo(now, 60 * 25),
     },
     {
       id: 'act_tuesday_offer',
@@ -283,7 +250,7 @@ export function createSeed(now = new Date()): MockDatabase {
         comparison: { label: 'last Tuesday', sales: STORY.lastTuesdaySales, changePct: STORY.dipPct },
       },
       reasoning: 'Recurring Tuesday dip',
-      spokenSummary: `Namaste ${merchant.name}. Kal ki sale ₹8,400 thi, pichle Mangalwar se 18% kam. Maine 40 regular customers ko WhatsApp offer bhej diya hai. Aapke approval ke liye 3 cheezein hain.`,
+      spokenSummary: `Namaste ${merchant.name}. Kal ki sale ₹8,400 thi, pichle Mangalwar se 18% kam. Maine 40 regular customers ko WhatsApp offer bhej diya hai. Aapke approval ke liye 2 cheezein hain.`,
     },
     insights: [
       {
@@ -297,6 +264,7 @@ export function createSeed(now = new Date()): MockDatabase {
         risk: 'low',
         ctaLabel: 'See offer',
         actionId: 'act_tuesday_offer',
+        createdAt: minutesAgo(now, 9),
       },
       {
         id: 'ins_cash_crunch',
@@ -308,18 +276,20 @@ export function createSeed(now = new Date()): MockDatabase {
         impactLabel: '₹4,600 short',
         risk: 'high',
         ctaLabel: 'See cashflow',
+        createdAt: minutesAgo(now, 36),
       },
       {
         id: 'ins_reorder',
         kind: 'reorder',
         rank: 3,
-        title: 'Rice and atta running low',
-        detail: 'About 4 days of stock left. Reorder is ready for your approval.',
-        impactRupees: 3_200,
-        impactLabel: '₹3,200 sales protected',
+        title: 'Detergent 1kg running low',
+        detail: 'About 3 days of stock left. A restock is ready for your approval.',
+        impactRupees: 1_500,
+        impactLabel: '₹1,500 sales protected',
         risk: 'medium',
-        ctaLabel: 'Review reorder',
-        actionId: 'act_reorder_staples',
+        ctaLabel: 'Review restock',
+        actionId: 'act_restock_detergent',
+        createdAt: minutesAgo(now, 41),
       },
       {
         id: 'ins_loyalty',
@@ -423,9 +393,10 @@ export function createSeed(now = new Date()): MockDatabase {
     days,
     shortfallDayIndex: days.findIndex((d) => d.balance < safetyThreshold),
     safetyThreshold,
-    reorderActionId: 'act_reorder_staples',
+    reorderActionId: 'act_restock_detergent',
     loanActionId: 'act_loan_offer',
   }
 
-  return { insights, actions, campaigns, regulars, outcomes, cashflow, trust: defaultTrustSettings, counter: createCounter(now) }
+  const trust = defaultTrustSettings
+  return { insights, actions, campaigns, regulars, outcomes, cashflow, trust, counter: createCounter(now, trust, regulars.regulars) }
 }
