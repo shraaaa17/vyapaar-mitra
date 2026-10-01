@@ -12,14 +12,25 @@ export function PageHeader({
   title,
   subtitle,
   actions,
+  visuallyHidden = false,
 }: {
   title: string
   subtitle?: ReactNode
   actions?: ReactNode
+  /** For screens whose name is already in the app header (the Counter): kept for screen readers and focus. */
+  visuallyHidden?: boolean
 }) {
   // POP is the first load or back/forward, where the browser handles focus and scroll.
   const headingRef = useFocusOnMount<HTMLHeadingElement>(useNavigationType() !== 'POP')
   useDocumentTitle(title)
+
+  if (visuallyHidden) {
+    return (
+      <h1 ref={headingRef} tabIndex={-1} className="sr-only">
+        {title}
+      </h1>
+    )
+  }
 
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-4 md:mb-8">

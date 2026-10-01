@@ -1,9 +1,9 @@
 import {
-  House,
   ListChecks,
   Megaphone,
   Settings,
   Sparkles,
+  Store,
   TrendingUp,
   Users,
   Wallet,
@@ -23,18 +23,25 @@ export type AppNavItem = {
   badge?: 'pending'
 }
 
-/** Primary sections: bottom tabs on mobile, top of the sidebar on desktop. */
-export const primaryNav: AppNavItem[] = [
-  { to: '/', labelKey: 'nav.home', icon: House },
-  { to: '/actions', labelKey: 'nav.actions', icon: ListChecks, badge: 'pending' },
-  { to: '/campaigns', labelKey: 'nav.campaigns', icon: Megaphone },
-  { to: '/credit', labelKey: 'nav.credit', shortLabelKey: 'nav.creditShort', icon: Wallet },
-  { to: '/ask', labelKey: 'nav.ask', shortLabelKey: 'nav.askShort', icon: Sparkles },
-]
+const counter: AppNavItem = { to: '/', labelKey: 'nav.counter', icon: Store }
+const actions: AppNavItem = { to: '/actions', labelKey: 'nav.actions', icon: ListChecks, badge: 'pending' }
+const campaigns: AppNavItem = { to: '/campaigns', labelKey: 'nav.campaigns', icon: Megaphone }
+const regulars: AppNavItem = { to: '/regulars', labelKey: 'nav.regulars', icon: Users }
+const credit: AppNavItem = { to: '/credit', labelKey: 'nav.credit', shortLabelKey: 'nav.creditShort', icon: Wallet }
+const impact: AppNavItem = { to: '/impact', labelKey: 'nav.impact', icon: TrendingUp }
+const ask: AppNavItem = { to: '/ask', labelKey: 'nav.ask', shortLabelKey: 'nav.askShort', icon: Sparkles }
+const settings: AppNavItem = { to: '/settings', labelKey: 'nav.settings', icon: Settings }
 
-/** Secondary sections: the "More" sheet on mobile, lower sidebar on desktop. */
-export const moreNav: AppNavItem[] = [
-  { to: '/regulars', labelKey: 'nav.regulars', icon: Users },
-  { to: '/impact', labelKey: 'nav.impact', icon: TrendingUp },
-  { to: '/settings', labelKey: 'nav.settings', icon: Settings },
-]
+/** Section tabs under the header (768px and up). Settings sits behind the gear. */
+export const sectionNav: AppNavItem[] = [counter, actions, campaigns, regulars, credit, impact, ask]
+
+/** Mobile bottom tabs; the fifth slot opens "More". */
+export const mobileTabs: AppNavItem[] = [counter, actions, campaigns, credit]
+
+/** Mobile "More" sheet. */
+export const moreNav: AppNavItem[] = [ask, regulars, impact, settings]
+
+/** The section a path belongs to, for the header title. */
+export function sectionFor(pathname: string): AppNavItem | undefined {
+  return [...sectionNav, settings].find((item) => (item.to === '/' ? pathname === '/' : pathname.startsWith(item.to)))
+}

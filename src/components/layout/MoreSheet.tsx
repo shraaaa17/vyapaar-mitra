@@ -6,10 +6,11 @@ import { moreNav } from '../../data/appNav'
 import { useMerchant } from '../../hooks/queries'
 import { cn } from '../../lib/cn'
 import { useUi } from '../../store/ui'
+import { LanguageSelect } from '../language/LanguageSelect'
 import { IconBubble } from '../ui/IconBubble'
 import { useTranslation } from 'react-i18next'
 
-/** Mobile bottom sheet holding the secondary sections. */
+/** Mobile bottom sheet: the remaining sections and the language switch. */
 export function MoreSheet() {
   const { t } = useTranslation()
   const open = useUi((s) => s.moreOpen)
@@ -96,6 +97,11 @@ export function MoreSheet() {
                 )
               })}
             </ul>
+
+            <div className="mt-4 flex items-center justify-between gap-3 px-1">
+              <p className="font-semibold text-ink">{t('auth.languageLabel')}</p>
+              <LanguageSelect />
+            </div>
 
             {merchant && (
               <p className="mt-4 text-center text-xs text-slate-soft">

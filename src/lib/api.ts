@@ -2,8 +2,12 @@ import { MockApiError, mockRequest } from '../mocks/server'
 import type {
   ActionDecisionRequest,
   AgentAction,
+  AgentRunReport,
+  Bill,
+  BillRequest,
   Campaign,
   CashflowResponse,
+  CreateBillRequest,
   InsightsResponse,
   Merchant,
   OtpRequest,
@@ -11,9 +15,11 @@ import type {
   OtpVerifyRequest,
   OtpVerifyResponse,
   OutcomesResponse,
+  PaymentResponse,
   QueryRequest,
   QueryResponse,
   RegularsResponse,
+  TodaySummary,
   TrustSettings,
 } from '../mocks/types'
 
@@ -65,4 +71,9 @@ export const api = {
   getMerchant: () => request<Merchant>('GET', '/merchant/profile'),
   sendOtp: (payload: OtpRequest) => request<OtpResponse>('POST', '/auth/otp', payload),
   verifyOtp: (payload: OtpVerifyRequest) => request<OtpVerifyResponse>('POST', '/auth/verify', payload),
+  runAgent: () => request<AgentRunReport>('POST', '/agent/run'),
+  getToday: () => request<TodaySummary>('GET', '/counter/today'),
+  createBill: (payload: CreateBillRequest) => request<Bill>('POST', '/counter/bill', payload),
+  tapCard: (payload: BillRequest) => request<PaymentResponse>('POST', '/counter/bill/tap', payload),
+  cancelBill: (payload: BillRequest) => request<{ ok: boolean }>('POST', '/counter/bill/cancel', payload),
 }

@@ -212,3 +212,71 @@ export type QueryResponse = {
   card?: QueryCard
   followUps: string[]
 }
+
+// ---------- Counter (bills and payments at the till) ----------
+
+export type PaymentSource = 'card' | 'upi'
+
+/** A bill waiting to be paid by QR or card tap. */
+export type Bill = {
+  id: string
+  amount: number
+  /** UPI intent the counter QR encodes. */
+  upiUri: string
+  createdAt: string
+  expiresAt: string
+}
+
+export type CreateBillRequest = { amount: number }
+export type BillRequest = { billId: string }
+
+export type CounterCustomer = {
+  /** Masked label, e.g. "Cust ****12"; never a name or number. */
+  masked: string
+  /** Visits including this one. */
+  visits: number
+  returning: boolean
+  /** True when this visit earns the loyalty reward. */
+  rewardDue: boolean
+  whatsappOptIn: boolean
+}
+
+export type Payment = {
+  id: string
+  billId: string
+  amount: number
+  source: PaymentSource
+  /** Masked card or UPI handle, e.g. "•••• 4417". */
+  instrumentMasked: string
+  /** Device that took the payment. Internal only: the UI never shows it. */
+  terminalId: string
+  customer: CounterCustomer
+  paidAt: string
+}
+
+export type TodaySummary = {
+  /** Local date, YYYY-MM-DD. */
+  date: string
+  sales: number
+  /** Number of payments today. */
+  count: number
+  /** Payments from returning customers today. */
+  returning: number
+  /** Today's latest payments, newest first (at most 20). */
+  recent: Payment[]
+}
+
+export type PaymentResponse = { payment: Payment; today: TodaySummary }
+
+// ---------- Agent run ("Run agent now") ----------
+
+export type AgentRunReport = {
+  ranAt: string
+  today: TodaySummary
+  /** Sales so far vs what a usual day has taken by this time (%), negative when behind. */
+  pacePct: number
+  /** An action the run created, already handled per the trust settings. */
+  newAction: AgentAction | null
+  /** Set when a finding was dropped because that action type is switched off. */
+  skippedType: ActionType | null
+}

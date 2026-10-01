@@ -1,4 +1,4 @@
-import type { ElementType, HTMLAttributes, ReactNode } from 'react'
+import type { ElementType, HTMLAttributes, ReactNode, Ref } from 'react'
 import { cn } from '../../lib/cn'
 
 type Tone = 'white' | 'cloud' | 'wash' | 'blue'
@@ -6,6 +6,7 @@ type Elevation = 'soft' | 'raised' | 'inset'
 type Padding = 'none' | 'sm' | 'md' | 'lg'
 
 export type ClayCardProps = HTMLAttributes<HTMLElement> & {
+  ref?: Ref<HTMLDivElement>
   as?: ElementType
   tone?: Tone
   elevation?: Elevation

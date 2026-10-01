@@ -1,6 +1,8 @@
+import { localDateKey } from '../lib/date'
 import { RECOMMENDED_TRUST } from '../lib/trust'
 import type {
   AgentAction,
+  Bill,
   Campaign,
   CashflowDay,
   CashflowResponse,
@@ -8,6 +10,7 @@ import type {
   LoanOffer,
   Merchant,
   OutcomesResponse,
+  Payment,
   RegularsResponse,
   TrustSettings,
 } from './types'
@@ -74,6 +77,37 @@ const daysFrom = (now: Date, days: number) => {
   return d
 }
 
+/** The counter Soundbox. Payments carry its ID, but the UI never shows it. */
+export const TERMINAL_ID = 'PTSB-MUM-0042177'
+
+/** A usual weekday's takings, used to judge today's pace. */
+export const USUAL_DAY_SALES = 11_200
+
+/**
+ * Cards that tap at the counter, in turn. Some belong to regulars (their visit
+ * count comes from the regulars list); the rest are new shoppers. The first
+ * tap is a regular reaching the 12th-visit reward.
+ */
+export const CARD_POOL: { instrument: string; regularId?: string }[] = [
+  { instrument: '•••• 4417', regularId: 'cust_12' },
+  { instrument: '•••• 9031' },
+  { instrument: '•••• 2268', regularId: 'cust_85' },
+  { instrument: '•••• 6620' },
+  { instrument: '•••• 7754', regularId: 'cust_09' },
+  { instrument: '•••• 3342', regularId: 'cust_64' },
+]
+
+export type CounterDb = {
+  date: string
+  bills: Record<string, { bill: Bill; status: 'open' | 'paid' | 'cancelled' }>
+  /** Today's payments, oldest first. */
+  payments: Payment[]
+  /** Visits by card for shoppers who aren't regulars yet. */
+  cardVisits: Record<string, number>
+  /** How many cards have tapped so far; picks the next card from CARD_POOL. */
+  taps: number
+}
+
 export type MockDatabase = {
   insights: InsightsResponse
   actions: AgentAction[]
@@ -82,6 +116,42 @@ export type MockDatabase = {
   outcomes: OutcomesResponse
   cashflow: CashflowResponse
   trust: TrustSettings
+  counter: CounterDb
+}
+
+/** Payments already taken this morning, so the counter opens mid-day like a real shop. */
+export function createCounter(now = new Date(), withMorning = true): CounterDb {
+  const startOfDay = new Date(now)
+  startOfDay.setHours(0, 0, 0, 0)
+  const morning: [number, number, Payment['source'], string, string | null, number][] = [
+    // minutes ago, amount, source, card or UPI handle, regular, visits
+    [150, 180, 'upi', '••••@ybl', null, 1],
+    [118, 420, 'card', '•••• 5821', 'Cust ****21', 8],
+    [92, 95, 'upi', '••••@paytm', null, 1],
+    [64, 640, 'card', '•••• 1937', 'Cust ****37', 12],
+    [37, 260, 'upi', '••••@okicici', 'Cust ****46', 5],
+    [16, 245, 'card', '•••• 8810', null, 2],
+  ]
+  const payments: Payment[] = withMorning
+    ? morning.map(([ago, amount, source, instrument, masked, visits], i) => ({
+        id: `pay_seed_${i}`,
+        billId: `bill_seed_${i}`,
+        amount,
+        source,
+        instrumentMasked: instrument,
+        terminalId: TERMINAL_ID,
+        customer: {
+          masked: masked ?? (visits > 1 ? `Cust ****${instrument.slice(-2)}` : 'New customer'),
+          visits,
+          returning: visits > 1,
+          rewardDue: false,
+          whatsappOptIn: masked !== null,
+        },
+        // Never earlier than midnight, so a seed made at 1 am still counts as today.
+        paidAt: new Date(Math.max(now.getTime() - ago * 60_000, startOfDay.getTime() + i * 60_000)).toISOString(),
+      }))
+    : []
+  return { date: localDateKey(now), bills: {}, payments, cardVisits: {}, taps: 0 }
 }
 
 export function createSeed(now = new Date()): MockDatabase {
@@ -357,5 +427,5 @@ export function createSeed(now = new Date()): MockDatabase {
     loanActionId: 'act_loan_offer',
   }
 
-  return { insights, actions, campaigns, regulars, outcomes, cashflow, trust: defaultTrustSettings }
+  return { insights, actions, campaigns, regulars, outcomes, cashflow, trust: defaultTrustSettings, counter: createCounter(now) }
 }

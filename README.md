@@ -4,7 +4,7 @@
 
 It's a concept prototype and not an official Paytm product. All merchant data shown is mock data.
 
-The app is the merchant's own copilot. Ramesh signs in and uses it on his phone or the shop-counter laptop.
+The app is the merchant's own copilot. Ramesh signs in and uses it on his phone or the shop-counter laptop. After sign-in he lands on the **Counter**: he rings up a bill, the customer pays by UPI QR or a card tap on the Soundbox, and every payment updates today's sales, the Soundbox caption, the agent activity feed and Ask Vyapaar Mitra's answers at once.
 
 ## Stack
 
@@ -23,17 +23,19 @@ npm run build:static  # build that opens from any static host or folder (hash UR
 
 ## Design system
 
-The tokens live in `src/index.css`, inside the `@theme` block.
+The tokens live in `src/index.css`, inside the `@theme` block. The palette is the master prompt's, light only:
 
 | Token | Value | Use |
 |---|---|---|
-| `paytm-blue` | `#002E6E` | Headings, navigation, primary CTA, trust |
-| `paytm-cyan` | `#00B9F1` | AI accents, active states, data viz |
-| `cloud` | `#F4FAFF` | Page background |
-| `slate` | `#425466` | Secondary text |
+| `canvas` | `#F5F7FA` | Page background |
+| `surface` / `line` | `#FFFFFF` / `#E3E8EF` | White cards with a 1px soft border |
+| `accent` (`paytm-blue`) | `#00BAF2` | Primary buttons, active tabs, highlights (`accent-ink` `#00739A` for small text) |
+| `coral` | `#F23A5C` | Live dot, returning-customer badges, rewards (`coral-ink` `#C81E45` for text) |
+| `ink` (`navy`) | `#0A1F44` | Text, headings and icons only, never a background |
+| `success` / `caution` / `danger` | `#0F9D6B` / `#B26A00` / `#C42B1C` | Success, and green/amber/red for risk only |
 
 - **Type scale utilities:** `text-hero`, `text-section`, `text-card`, `text-body-lg`, `text-body`, `text-eyebrow`
-- **Clay utilities:** `clay-card` (raised), `clay-soft`, `clay-inset`, `clay-blue`, `clay-button` (hover lift / press squash) and `clay-lift` (hover lift for cards). The shadow recipes are defined once as `--clay-shadow-*` variables.
+- **Clay utilities:** `clay-card` (raised), `clay-soft`, `clay-inset`, `clay-accent`, `clay-button` (hover lift / press squash) and `clay-lift` (hover lift for cards). The shadow recipes are defined once as `--clay-shadow-*` variables.
 
 The primitives live in `src/components/ui/`: `ClayButton`, `ClayCard`, `ClaySwitch`, `FloatingOrb`, `IconBubble`, `Badge`, `RiskBadge`, `MetricCard`, `InsightCard`, `SectionHeading`, `Container`, `Logo`, `OtpInput` and `SegmentedChoice`.
 
@@ -64,10 +66,11 @@ Hinglish is the default, with English, Hindi and Marathi. Strings live in `src/i
 
 ```
 src/
-  pages/            Login, Onboarding, Home, Actions, Campaigns, Regulars, Credit, Impact, AskMitra, Settings
+  pages/            Login, Onboarding, Counter (home), Actions, Campaigns, Regulars, Credit, Impact, AskMitra, Settings
   components/
     ui/             clay primitives
-    layout/         AppShell, Sidebar (≥768px), BottomTabs + MoreSheet (<768px), route guards
+    counter/        New bill, Ask, Soundbox, approvals, agent activity, dip insight, section tiles
+    layout/         AppShell, AppHeader (section tabs ≥768px), BottomTabs + MoreSheet (<768px), route guards
     auth/           sign-in frame with Mitra
     trust/          Trust Settings panels (onboarding and Settings share them)
     language/       language picker and header language switch
@@ -78,7 +81,8 @@ src/
   lib/trust.ts      trust defaults and limits shared by the UI and the mock
   lib/speech.ts     read-aloud (Web Speech API) in the chosen language
   hooks/queries.ts  TanStack Query hooks and mutations
-  store/            Zustand: session + preferences (persisted), onboarding draft, shell UI state
+  store/            Zustand: session + preferences (persisted), onboarding draft, shell UI state,
+                    counter.ts (today's sales, bill flow, Soundbox caption, activity: the one store every payment updates)
 ```
 
 ## API
@@ -97,13 +101,25 @@ With no `VITE_API_BASE_URL` set, every request is served in the browser by `src/
 
 The mock also serves these helpers, which are **not** in the documented backend API: `GET /agent/settings/trust`, `GET /agent/campaigns`, `GET /agent/regulars` and `GET /merchant/profile`.
 
+The Counter adds mock-only routes for the payment loop. Swap them for the real Soundbox and payment events when the backend has them:
+
+| Method | Path | Used for |
+|---|---|---|
+| GET | `/counter/today` | Today's sales, payment count, returning customers, last 20 payments |
+| POST | `/counter/bill` | Create a bill (`{ amount }`, ₹1 to ₹1,00,000); it expires after 60 seconds |
+| POST | `/counter/bill/tap` | Simulates the customer tapping a card on the Soundbox (`{ billId }`) |
+| POST | `/counter/bill/cancel` | Cancel an open bill (`{ billId }`) |
+| POST | `/agent/run` | "Run agent now": today's pace against a usual day, plus any new action |
+
+Payments carry a terminal ID internally, but the UI never shows it. The QR on a bill is a drawn placeholder that no app can scan, so the prototype can't send anyone real money; "Tap card" completes the payment.
+
 Sign-in is mocked too: `POST /auth/otp` (`{ phone }`) and `POST /auth/verify` (`{ phone, otp }`). Any 10-digit mobile number starting with 6–9 works, and any 6-digit OTP except `000000` (which returns a wrong-OTP error, to show that state).
 
 ## Build phases
 
 1. ✅ Setup, design tokens, responsive shell, routing, store, mock API + seed data
 2. ✅ Login, onboarding, Trust Settings, i18n
-3. Home briefing, insight cards, read-aloud
+3. ✅ Counter: New bill, Soundbox, approvals, agent activity, Ask, dip insight, links to every section
 4. Action Center, Why panel, approve/undo
 5. Campaigns + Regulars
 6. Credit & Cashflow

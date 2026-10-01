@@ -1,19 +1,19 @@
-import { Outlet } from 'react-router-dom'
-import { BottomTabs } from './BottomTabs'
-import { MobileHeader } from './MobileHeader'
-import { MoreSheet } from './MoreSheet'
-import { Sidebar } from './Sidebar'
 import { useTranslation } from 'react-i18next'
+import { Outlet } from 'react-router-dom'
+import { SoundboxVoice } from '../counter/SoundboxVoice'
+import { AppHeader } from './AppHeader'
+import { BottomTabs } from './BottomTabs'
+import { MoreSheet } from './MoreSheet'
 
 /**
- * Signed-in layout. One component tree for every screen size: a sidebar from
- * 768px up, a header + bottom tab bar below it. Pages render into a centred
- * ~1100px column.
+ * Signed-in layout. One component tree for every screen size: a header with
+ * section tabs from 768px up, and a bottom tab bar below it. Pages render
+ * into a centred ~1200px column.
  */
 export function AppShell() {
   const { t } = useTranslation()
   return (
-    <div className="flex min-h-dvh">
+    <div className="flex min-h-dvh flex-col">
       <a
         href="#main"
         onClick={(event) => {
@@ -24,17 +24,15 @@ export function AppShell() {
       >
         {t('shell.skipToContent')}
       </a>
-      <Sidebar />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <MobileHeader />
-        <main id="main" tabIndex={-1} className="flex-1 pb-28 outline-none md:pb-12">
-          <div className="mx-auto w-full max-w-[1100px] px-4 pt-6 sm:px-6 md:pt-10 lg:px-10">
-            <Outlet />
-          </div>
-        </main>
-      </div>
+      <AppHeader />
+      <main id="main" tabIndex={-1} className="flex-1 pb-28 outline-none md:pb-12">
+        <div className="mx-auto w-full max-w-[1200px] px-4 pt-5 sm:px-6 md:pt-8 lg:px-10">
+          <Outlet />
+        </div>
+      </main>
       <BottomTabs />
       <MoreSheet />
+      <SoundboxVoice />
     </div>
   )
 }
