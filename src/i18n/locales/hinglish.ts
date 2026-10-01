@@ -133,7 +133,10 @@ export const hinglish = {
   nav: {
     main: 'Main menu',
     counter: 'Counter',
+<<<<<<< HEAD
     history: 'History',
+=======
+>>>>>>> 71ba05fa0220e615d57ef8290c5ba200c7bc64c6
     actions: 'Actions',
     campaigns: 'Campaigns',
     credit: 'Credit aur Cashflow',
@@ -213,6 +216,7 @@ export const hinglish = {
     },
     ask: {
       title: 'Vyapaar Mitra se poochein',
+<<<<<<< HEAD
       launcher: 'Mitra se poochein',
       panelLabel: 'Vyapaar Mitra chat',
       conversation: 'Mitra ke saath baatcheet',
@@ -220,6 +224,8 @@ export const hinglish = {
       minimize: 'Chat chhoti karein',
       restore: 'Chat kholein',
       close: 'Chat band karein',
+=======
+>>>>>>> 71ba05fa0220e615d57ef8290c5ba200c7bc64c6
       label: 'Aapka sawaal',
       placeholder: 'Sale, grahak ya cash ke baare mein poochein',
       send: 'Poochein',
@@ -360,6 +366,7 @@ export const hinglish = {
     },
   },
   pages: {
+<<<<<<< HEAD
     history: {
       title: 'History',
       subtitle: 'Mitra aur aapke customers ki saari activity, sahi order mein.',
@@ -368,6 +375,8 @@ export const hinglish = {
       loading: 'Activity load ho rahi hai',
       empty: 'Abhi koi activity nahi.',
     },
+=======
+>>>>>>> 71ba05fa0220e615d57ef8290c5ba200c7bc64c6
     actions: {
       title: 'Actions',
       subtitle: 'Mitra kya karna chahta hai, aur aapke liye kya kar chuka hai.',
@@ -384,6 +393,7 @@ export const hinglish = {
       audience: '{{count}} regular grahak',
       delivered: 'Pahunche',
       redeemed: 'Use kiye',
+<<<<<<< HEAD
       whatsapp: 'WhatsApp',
       simulated: 'Pilot simulation',
       status: { running: 'Chal raha hai', paused: 'Ruka hua', stopped: 'Band', completed: 'Poora hua' },
@@ -406,6 +416,8 @@ export const hinglish = {
       emptyTitle: 'Abhi koi offer nahi',
       emptyBody: 'Offer tayyar hone par Mitra uske results yahaan dikhayega.',
       controlsUnavailable: 'Abhi offer controls available nahi hain.',
+=======
+>>>>>>> 71ba05fa0220e615d57ef8290c5ba200c7bc64c6
       next1: 'WhatsApp jaisa offer preview',
       next2: 'Kisko bheja, aur bheje, pahunche, use kiye',
       next3: 'Discount ka kharcha vs extra sale',
@@ -415,6 +427,7 @@ export const hinglish = {
       subtitle: 'Aapke pakke grahak, poori privacy ke saath.',
       total: 'Regular grahak',
       optedIn: 'WhatsApp par haan bola (top 10)',
+<<<<<<< HEAD
       summary: 'Regular customers ka summary',
       rewardsReady: 'Reward lene ke liye ready',
       listTitle: 'Customer list',
@@ -436,6 +449,8 @@ export const hinglish = {
       whatsappConsent: 'WhatsApp consent',
       optedInStatus: 'Haan bola',
       notOptedInStatus: 'Haan nahi bola',
+=======
+>>>>>>> 71ba05fa0220e615d57ef8290c5ba200c7bc64c6
       next1: 'Chhupe naam ke saath grahakon ki list aur visits',
       next2: 'Reward status aur “12vi visit” badge',
       next3: 'WhatsApp par haan ka nishaan',
@@ -457,6 +472,7 @@ export const hinglish = {
       subtitle: 'Mitra ke kaam ke baad kya badla, aur usne kya seekha.',
       tuesdayBeforeAfter: 'Mangalvaar, hafta 1 → hafta 2',
       pilot: '+{{pct}}% · pilot simulation',
+<<<<<<< HEAD
       pilotLabel: 'Pilot simulation',
       summary: 'Nateejon ka summary',
       before: 'Offer se pehle',
@@ -471,6 +487,8 @@ export const hinglish = {
       learnedTitle: 'Mitra ne kya seekha',
       nextTitle: 'Agle hafte Mitra kya try karega',
       viewCampaign: 'Campaign results dekhein',
+=======
+>>>>>>> 71ba05fa0220e615d57ef8290c5ba200c7bc64c6
       next1: 'Pehle vs baad, Mangalvaar ka bar chart (pilot simulation)',
       next2: '“Maine kya seekha” aur “Agle hafte kya badlunga”',
     },

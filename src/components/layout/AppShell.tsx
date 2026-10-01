@@ -1,7 +1,10 @@
 import { useTranslation } from 'react-i18next'
 import { Outlet } from 'react-router-dom'
 import { SoundboxVoice } from '../counter/SoundboxVoice'
+<<<<<<< HEAD
 import { FloatingChat } from './FloatingChat'
+=======
+>>>>>>> 71ba05fa0220e615d57ef8290c5ba200c7bc64c6
 import { AppHeader } from './AppHeader'
 import { BottomTabs } from './BottomTabs'
 import { MoreSheet } from './MoreSheet'
@@ -34,7 +37,10 @@ export function AppShell() {
       <BottomTabs />
       <MoreSheet />
       <SoundboxVoice />
+<<<<<<< HEAD
       <FloatingChat />
+=======
+>>>>>>> 71ba05fa0220e615d57ef8290c5ba200c7bc64c6
     </div>
   )
 }

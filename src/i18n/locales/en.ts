@@ -133,7 +133,10 @@ export const en = {
   nav: {
     main: 'Main',
     counter: 'Counter',
+<<<<<<< HEAD
     history: 'History',
+=======
+>>>>>>> 71ba05fa0220e615d57ef8290c5ba200c7bc64c6
     actions: 'Actions',
     campaigns: 'Campaigns',
     credit: 'Credit & Cashflow',
@@ -212,6 +215,7 @@ export const en = {
     },
     ask: {
       title: 'Ask Vyapaar Mitra',
+<<<<<<< HEAD
       launcher: 'Ask Mitra',
       panelLabel: 'Ask Vyapaar Mitra chat',
       conversation: 'Conversation with Mitra',
@@ -219,6 +223,8 @@ export const en = {
       minimize: 'Minimize chat',
       restore: 'Restore chat',
       close: 'Close chat',
+=======
+>>>>>>> 71ba05fa0220e615d57ef8290c5ba200c7bc64c6
       label: 'Your question',
       placeholder: 'Ask about sales, customers or cash',
       send: 'Ask',
@@ -358,6 +364,7 @@ export const en = {
     },
   },
   pages: {
+<<<<<<< HEAD
     history: {
       title: 'History',
       subtitle: 'Everything Mitra and your customers did, in order.',
@@ -366,6 +373,8 @@ export const en = {
       loading: 'Loading activity',
       empty: 'No activity yet.',
     },
+=======
+>>>>>>> 71ba05fa0220e615d57ef8290c5ba200c7bc64c6
     actions: {
       title: 'Actions',
       subtitle: 'What Mitra wants to do, and what it already did for you.',
@@ -382,6 +391,7 @@ export const en = {
       audience: '{{count}} regular customers',
       delivered: 'Delivered',
       redeemed: 'Redeemed',
+<<<<<<< HEAD
       whatsapp: 'WhatsApp',
       simulated: 'Pilot simulation',
       status: { running: 'Running', paused: 'Paused', stopped: 'Stopped', completed: 'Completed' },
@@ -404,6 +414,8 @@ export const en = {
       emptyTitle: 'No offers yet',
       emptyBody: 'Mitra will show campaign results here when an offer is ready.',
       controlsUnavailable: 'Offer controls are unavailable right now.',
+=======
+>>>>>>> 71ba05fa0220e615d57ef8290c5ba200c7bc64c6
       next1: 'WhatsApp-style offer preview',
       next2: 'Audience and funnel: sent, delivered, redeemed',
       next3: 'Discount cost vs extra sales',
@@ -413,6 +425,7 @@ export const en = {
       subtitle: 'Your loyal customers, kept private.',
       total: 'Regular customers',
       optedIn: 'Opted in on WhatsApp (top 10)',
+<<<<<<< HEAD
       summary: 'Regular customer summary',
       rewardsReady: 'Rewards ready to redeem',
       listTitle: 'Customer list',
@@ -434,6 +447,8 @@ export const en = {
       whatsappConsent: 'WhatsApp consent',
       optedInStatus: 'Opted in',
       notOptedInStatus: 'Not opted in',
+=======
+>>>>>>> 71ba05fa0220e615d57ef8290c5ba200c7bc64c6
       next1: 'Masked customer list with visit counts',
       next2: 'Reward status and “12th visit” badge',
       next3: 'WhatsApp consent indicator',
@@ -455,6 +470,7 @@ export const en = {
       subtitle: 'What changed after Mitra acted, and what it learned.',
       tuesdayBeforeAfter: 'Tuesday, week 1 → week 2',
       pilot: '+{{pct}}% · pilot simulation',
+<<<<<<< HEAD
       pilotLabel: 'Pilot simulation',
       summary: 'Outcome summary',
       before: 'Before the offer',
@@ -469,6 +485,8 @@ export const en = {
       learnedTitle: 'What Mitra learned',
       nextTitle: 'What Mitra will try next week',
       viewCampaign: 'View campaign results',
+=======
+>>>>>>> 71ba05fa0220e615d57ef8290c5ba200c7bc64c6
       next1: 'Before vs after Tuesday bar chart (pilot simulation)',
       next2: '“What I learned” and “What I’ll change next week”',
     },

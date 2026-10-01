@@ -9,7 +9,10 @@ import { Credit } from './pages/Credit'
 import { DesignSystem } from './pages/DesignSystem'
 import { Counter } from './pages/Counter'
 import { Impact } from './pages/Impact'
+<<<<<<< HEAD
 import { HistoryPage } from './pages/History'
+=======
+>>>>>>> 71ba05fa0220e615d57ef8290c5ba200c7bc64c6
 import { NotFound } from './pages/NotFound'
 import { Regulars } from './pages/Regulars'
 import { Settings } from './pages/Settings'
@@ -39,7 +42,10 @@ export const router = createRouter([
         element: <AppShell />,
         children: [
           { index: true, element: <Counter /> },
+<<<<<<< HEAD
           { path: 'history', element: <HistoryPage /> },
+=======
+>>>>>>> 71ba05fa0220e615d57ef8290c5ba200c7bc64c6
           { path: 'actions', element: <Actions /> },
           { path: 'campaigns', element: <Campaigns /> },
           { path: 'credit', element: <Credit /> },

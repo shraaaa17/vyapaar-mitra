@@ -167,7 +167,11 @@ export function AskCard() {
 }
 
 /** The small number card or bar chart that comes with an answer. */
+<<<<<<< HEAD
 export function AnswerVisual({ card }: { card: QueryCard }) {
+=======
+function AnswerVisual({ card }: { card: QueryCard }) {
+>>>>>>> 71ba05fa0220e615d57ef8290c5ba200c7bc64c6
   if (card.type === 'metric') {
     return (
       <div className="rounded-2xl bg-accent-wash px-4 py-3">

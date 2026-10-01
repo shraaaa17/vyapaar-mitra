@@ -42,7 +42,10 @@ export function useActionDecision(onDecided?: (action: AgentAction, request: Act
       client.setQueryData<AgentAction[]>(queryKeys.actions, (current) =>
         current?.map((a) => (a.id === updated.id ? updated : a)),
       )
+<<<<<<< HEAD
       void client.invalidateQueries({ queryKey: queryKeys.actions })
+=======
+>>>>>>> 71ba05fa0220e615d57ef8290c5ba200c7bc64c6
       void client.invalidateQueries({ queryKey: queryKeys.campaigns })
       void client.invalidateQueries({ queryKey: queryKeys.insights })
       // Hook-level, so it still runs if the card that asked has already left the screen.

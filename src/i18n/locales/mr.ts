@@ -133,7 +133,10 @@ export const mr = {
   nav: {
     main: 'मुख्य मेनू',
     counter: 'काउंटर',
+<<<<<<< HEAD
     history: 'इतिहास',
+=======
+>>>>>>> 71ba05fa0220e615d57ef8290c5ba200c7bc64c6
     actions: 'ॲक्शन्स',
     campaigns: 'कॅम्पेन',
     credit: 'क्रेडिट आणि कॅशफ्लो',
@@ -213,6 +216,7 @@ export const mr = {
     },
     ask: {
       title: 'व्यापार मित्राला विचारा',
+<<<<<<< HEAD
       launcher: 'मित्राला विचारा',
       panelLabel: 'व्यापार मित्राशी संवाद',
       conversation: 'मित्रासोबत संवाद',
@@ -220,6 +224,8 @@ export const mr = {
       minimize: 'चॅट लहान करा',
       restore: 'चॅट उघडा',
       close: 'चॅट बंद करा',
+=======
+>>>>>>> 71ba05fa0220e615d57ef8290c5ba200c7bc64c6
       label: 'तुमचा प्रश्न',
       placeholder: 'विक्री, ग्राहक किंवा रोकड याबद्दल विचारा',
       send: 'विचारा',
@@ -360,6 +366,7 @@ export const mr = {
     },
   },
   pages: {
+<<<<<<< HEAD
     history: {
       title: 'इतिहास',
       subtitle: 'मित्र आणि तुमच्या ग्राहकांनी केलेल्या सर्व गोष्टी, क्रमाने.',
@@ -368,6 +375,8 @@ export const mr = {
       loading: 'गतिविधी लोड होत आहे',
       empty: 'अजून कोणतीही गतिविधी नाही.',
     },
+=======
+>>>>>>> 71ba05fa0220e615d57ef8290c5ba200c7bc64c6
     actions: {
       title: 'ॲक्शन्स',
       subtitle: 'मित्राला काय करायचे आहे, आणि त्याने तुमच्यासाठी काय केले आहे.',
@@ -384,6 +393,7 @@ export const mr = {
       audience: '{{count}} नियमित ग्राहक',
       delivered: 'पोहोचले',
       redeemed: 'वापरले',
+<<<<<<< HEAD
       whatsapp: 'WhatsApp',
       simulated: 'पायलट सिम्युलेशन',
       status: { running: 'सुरू', paused: 'थांबवले', stopped: 'बंद', completed: 'पूर्ण', },
@@ -406,6 +416,8 @@ export const mr = {
       emptyTitle: 'अजून ऑफर नाहीत',
       emptyBody: 'ऑफर तयार झाल्यावर मित्र निकाल इथे दाखवेल.',
       controlsUnavailable: 'ऑफर नियंत्रणे सध्या उपलब्ध नाहीत.',
+=======
+>>>>>>> 71ba05fa0220e615d57ef8290c5ba200c7bc64c6
       next1: 'WhatsApp सारखे ऑफर प्रिव्ह्यू',
       next2: 'कोणाला पाठवले, आणि पाठवले, पोहोचले, वापरले',
       next3: 'सवलतीचा खर्च विरुद्ध जादा विक्री',
@@ -415,6 +427,7 @@ export const mr = {
       subtitle: 'तुमचे खात्रीचे ग्राहक, गोपनीयता जपून.',
       total: 'नियमित ग्राहक',
       optedIn: 'WhatsApp वर संमती दिली (टॉप 10)',
+<<<<<<< HEAD
       summary: 'नियमित ग्राहकांचा सारांश',
       rewardsReady: 'मिळवण्यासाठी तयार बक्षिसे',
       listTitle: 'ग्राहक यादी',
@@ -436,6 +449,8 @@ export const mr = {
       whatsappConsent: 'WhatsApp संमती',
       optedInStatus: 'संमती दिली',
       notOptedInStatus: 'संमती नाही',
+=======
+>>>>>>> 71ba05fa0220e615d57ef8290c5ba200c7bc64c6
       next1: 'लपवलेल्या नावांसह ग्राहकांची यादी आणि भेटींची संख्या',
       next2: 'बक्षिसाची स्थिती आणि “12वी भेट” बॅज',
       next3: 'WhatsApp संमतीची खूण',
@@ -457,6 +472,7 @@ export const mr = {
       subtitle: 'मित्राच्या पावलानंतर काय बदलले, आणि तो काय शिकला.',
       tuesdayBeforeAfter: 'मंगळवार, आठवडा 1 → आठवडा 2',
       pilot: '+{{pct}}% · पायलट सिम्युलेशन',
+<<<<<<< HEAD
       pilotLabel: 'पायलट सिम्युलेशन',
       summary: 'निकालांचा सारांश',
       before: 'ऑफरपूर्वी',
@@ -471,6 +487,8 @@ export const mr = {
       learnedTitle: 'मित्राने काय शिकले',
       nextTitle: 'पुढच्या आठवड्यात मित्र काय करून पाहील',
       viewCampaign: 'कॅम्पेनचे निकाल पाहा',
+=======
+>>>>>>> 71ba05fa0220e615d57ef8290c5ba200c7bc64c6
       next1: 'आधी विरुद्ध नंतर, मंगळवारचा बार चार्ट (पायलट सिम्युलेशन)',
       next2: '“मी काय शिकलो” आणि “पुढच्या आठवड्यात काय बदलेन”',
     },
