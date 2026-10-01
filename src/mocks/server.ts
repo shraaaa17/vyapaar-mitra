@@ -36,8 +36,8 @@ import type {
  * undos and settings survive a page refresh.
  */
 
-// v2: the counter moved to checkouts, linked cards and customer tags.
-const STORAGE_KEY = 'vm-mock-db-v2'
+// v3: regulars count WhatsApp opt-ins separately (v2: the counter moved to checkouts, linked cards and customer tags).
+const STORAGE_KEY = 'vm-mock-db-v3'
 
 export class MockApiError extends Error {
   status: number

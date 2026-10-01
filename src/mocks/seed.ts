@@ -17,7 +17,7 @@ import type {
 /**
  * Seed data for the Ramesh pilot story. Every number that appears on more than
  * one screen is defined once here so the app stays consistent everywhere:
- * yesterday ₹8,400 (−18% vs last Tuesday), 40 regulars, WhatsApp offer
+ * yesterday ₹8,400 (−18% vs last Tuesday), 42 regulars (40 on WhatsApp), WhatsApp offer
  * auto-sent, 12th-visit reward, Tuesday ₹10,900 (+30%, pilot simulation),
  * cash crunch in 6 days, a detergent restock and a recommend-only loan
  * waiting, and ₹670 taken at the counter so far today (3 payments).
@@ -27,7 +27,10 @@ export const STORY = {
   yesterdaySales: 8_400,
   lastTuesdaySales: 10_240,
   dipPct: -18,
+  /** Regulars who agreed to WhatsApp messages: the audience for offers. */
   regularsCount: 40,
+  /** All regulars, including the 2 who haven't agreed to WhatsApp. */
+  regularsTotal: 42,
   afterSales: 10_900,
   upliftPct: 30,
   cashCrunchInDays: 6,
@@ -338,14 +341,16 @@ export function createSeed(now = new Date()): MockDatabase {
   const visits = [12, 11, 10, 9, 9, 8, 7, 6, 5, 4]
   const baskets = [640, 420, 380, 510, 290, 350, 460, 300, 270, 330]
   const regulars: RegularsResponse = {
-    total: STORY.regularsCount,
+    total: STORY.regularsTotal,
+    optedIn: STORY.regularsCount,
     regulars: maskedIds.map((suffix, i) => ({
       id: `cust_${suffix}`,
       masked: `Cust ****${suffix}`,
       visits: visits[i],
       lastVisit: minutesAgo(now, 60 * 24 * (i % 4) + 60 * (i + 1)),
       avgBasket: baskets[i],
-      reward: { status: visits[i] >= 12 ? 'redeemed' : visits[i] === 11 ? 'earned' : 'progress', everyNVisits: 12 },
+      // Cust ****37 got the 12th-visit reward yesterday; the counter flags the next one as it happens.
+      reward: { status: visits[i] >= 12 ? 'redeemed' : 'progress', everyNVisits: 12 },
       consent: i === 6 || i === 9 ? { whatsappOptIn: false } : { whatsappOptIn: true, optedInAt: minutesAgo(now, 60 * 24 * (30 + i * 5)) },
     })),
   }
